@@ -1,5 +1,10 @@
 # reapfield
 
+[![CI](https://github.com/PedroHenriqueNS/reapfield/actions/workflows/ci.yml/badge.svg)](https://github.com/PedroHenriqueNS/reapfield/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/reapfield)](https://pypi.org/project/reapfield/)
+[![Python](https://img.shields.io/pypi/pyversions/reapfield)](https://pypi.org/project/reapfield/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 Give it a URL and a plain-language field spec, get structured JSON back — including on
 pages that only render under JavaScript.
 
@@ -34,7 +39,8 @@ cache. Plenty of pages never reach the paid step at all.
 ## Install
 
 ```console
-uv sync
+uv tool install reapfield      # or: pip install reapfield
+uvx reapfield --version        # no install at all
 uv run playwright install chromium   # only needed for JS-rendered pages
 export ANTHROPIC_API_KEY=sk-...      # only needed to learn new selectors
 ```
@@ -121,3 +127,9 @@ uv run pytest        # offline: no network, no API key
 
 The suite stubs the derivation function, so nothing in it can reach Anthropic or the
 network. See `SPEC.md` for the full design and `docs/adapters.md` for the adapter seam.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Security issues go through
+[SECURITY.md](SECURITY.md) — please do not open public issues for them.
+Release history is in [CHANGELOG.md](CHANGELOG.md).
