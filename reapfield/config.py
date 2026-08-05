@@ -54,6 +54,7 @@ class Config:
     scroll: int = 0
     paginate: int = 0
     timeout: float = 20.0
+    contribute_reports: str = "ask"  # ask | never -- see reapfield/report.py
 
     def for_domain(self, domain: str) -> DomainConfig:
         return self.domains.get(domain, DomainConfig())
@@ -97,5 +98,10 @@ def load(local: Path | None = None, **overrides) -> Config:
         user_agent=data.get("user_agent", DEFAULT_UA),
         domains=domains,
         model=os.environ.get("REAPFIELD_LLM_MODEL", DEFAULT_MODEL),
+    )
+    contribute = (data.get("contribute") or {}).get("reports", "ask")
+    cfg = replace(
+        cfg,
+        contribute_reports=os.environ.get("REAPFIELD_ISSUE_REPORTS", contribute),
     )
     return replace(cfg, **{k: v for k, v in overrides.items() if v is not None})
