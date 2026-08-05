@@ -91,7 +91,7 @@ stops DNS rebinding. `REAPFIELD_MCP_ALLOW_PRIVATE=1` opts out for local developm
 
 ```toml
 concurrency = 4
-user_agent  = "reapfield/0.1 (+https://github.com/PedroSilvaDry/reapfield)"
+user_agent  = "reapfield/0.1 (+https://github.com/PedroHenriqueNS/reapfield)"
 
 [domains."books.toscrape.com"]
 fetcher    = "http"           # auto | http | browser

@@ -11,7 +11,7 @@ import tomllib
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 
-DEFAULT_UA = "reapfield/0.1 (+https://github.com/PedroSilvaDry/reapfield)"
+DEFAULT_UA = "reapfield/0.1 (+https://github.com/PedroHenriqueNS/reapfield)"
 DEFAULT_MODEL = "claude-haiku-4-5-20251001"
 
 
