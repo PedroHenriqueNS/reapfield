@@ -7,6 +7,7 @@ only one of them is a bug.
 
 from __future__ import annotations
 
+from importlib.metadata import PackageNotFoundError, version as _pkg_version
 from urllib.parse import urljoin, urlsplit
 
 from selectolax.lexbor import LexborHTMLParser
@@ -18,7 +19,11 @@ from .extract import DeriveFn, Extraction, extract
 from .spec import Field, build_model, parse_fields
 
 __all__ = ["scrape", "Extraction", "Field", "Config", "load", "parse_fields", "build_model"]
-__version__ = "0.1.0"
+
+try:
+    __version__ = _pkg_version("reapfield")
+except PackageNotFoundError:  # a source tree that was never installed
+    __version__ = "0.0.0+unknown"
 
 
 def _default_deriver(cfg: Config) -> DeriveFn:

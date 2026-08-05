@@ -4,6 +4,25 @@ version = "0.1.0"
 description = "Scrape a URL into structured JSON from a natural-language field spec"
 readme = "README.md"
 requires-python = ">=3.12"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Pedro Henrique", email = "106723520+PedroHenriqueNS@users.noreply.github.com" },
+]
+keywords = ["scraping", "scraper", "web-scraping", "cli", "mcp", "llm", "html", "json"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
+    "Topic :: Text Processing :: Markup :: HTML",
+    "Typing :: Typed",
+]
 dependencies = [
     "anthropic>=0.40",
     "httpx>=0.27",
@@ -12,6 +31,12 @@ dependencies = [
     "pydantic>=2.9",
     "selectolax>=0.3.21",
 ]
+
+[project.urls]
+Homepage = "https://github.com/PedroHenriqueNS/reapfield"
+Repository = "https://github.com/PedroHenriqueNS/reapfield"
+Issues = "https://github.com/PedroHenriqueNS/reapfield/issues"
+Changelog = "https://github.com/PedroHenriqueNS/reapfield/blob/main/CHANGELOG.md"
 
 [project.scripts]
 reapfield = "reapfield.cli:main"
