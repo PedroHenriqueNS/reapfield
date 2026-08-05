@@ -116,9 +116,41 @@ def test_public_host_passes(monkeypatch):
     mcp_server.check_url("https://example.com/page")
 
 
-def test_all_three_tools_are_registered():
+def test_all_four_tools_are_registered():
     assert {t.name for t in mcp_server.mcp._tool_manager.list_tools()} == {
         "scrape",
         "list_cached_selectors",
         "refresh_selectors",
+        "prepare_issue_report",
     }
+
+
+async def test_prepare_issue_report_is_registered():
+    names = {t.name for t in mcp_server.mcp._tool_manager.list_tools()}
+    assert "prepare_issue_report" in names
+
+
+def test_instructions_carry_the_contribution_protocol():
+    """The only channel that reaches an agent installed from PyPI."""
+    from reapfield.config import Config
+
+    text = mcp_server.build_instructions(Config())
+    lowered = text.lower()
+    assert "already been reported" in lowered or "duplicate" in lowered
+    assert "authorization" in lowered or "authorisation" in lowered or "ask the user" in lowered
+    for section in ("Summary", "How to reproduce", "Cause", "Suggested fix"):
+        assert section in text
+    assert "prepare_issue_report" in text
+
+
+def test_instructions_respect_the_opt_out():
+    from reapfield.config import Config
+
+    text = mcp_server.build_instructions(Config(contribute_reports="never"))
+    assert "opted out" in text.lower()
+    assert "do not ask" in text.lower()
+
+
+def test_server_is_constructed_with_instructions():
+    assert mcp_server.mcp.instructions
+    assert "prepare_issue_report" in mcp_server.mcp.instructions

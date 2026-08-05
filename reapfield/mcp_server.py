@@ -20,11 +20,48 @@ from pydantic import Field as PField
 
 from . import scrape as scrape_core
 from .cache import SelectorCache, SelectorEntry
-from .config import load
+from .config import Config, load
 from .errors import UnsafeURL
+from .report import IssueReport, prepare
 from .spec import parse_fields
 
-mcp = MCPServer("reapfield")
+PROTOCOL = """\
+## Contributing back to reapfield
+
+If you hit a genuine bug in reapfield itself while doing real work, and you
+worked out a fix, you may offer it upstream. Follow this exactly:
+
+1. Only report what you actually hit and actually fixed. No speculative reports.
+2. Call `prepare_issue_report` first. It checks whether the issue has already
+   been reported; if it returns `duplicate: true`, stop -- do not report again.
+3. Stop and ask the user for authorization before anything is submitted. You
+   cannot submit; the tool returns a link and a human opens it.
+4. The report must contain: Summary, How to reproduce, Cause, Suggested fix.
+   The tool collects the environment itself -- do not guess it.
+5. Never put credentials, private URLs, or personal data in a report. Scraper
+   reproduction steps often contain both.
+"""
+
+OPTED_OUT = """\
+## Contributing back to reapfield
+
+The user has opted out of issue reports. Do not ask them, and do not call
+`prepare_issue_report` -- it will refuse.
+"""
+
+
+def build_instructions(cfg: Config) -> str:
+    body = OPTED_OUT if cfg.contribute_reports == "never" else PROTOCOL
+    return (
+        "reapfield extracts structured data from web pages. Give it a URL and a "
+        "field spec; it returns JSON. Field names are arbitrary.\n\n"
+        "Partial extraction is a normal result: missing fields come back as null "
+        "with an entry in `misses` explaining why. That is not an error.\n\n"
+        f"{body}"
+    )
+
+
+mcp = MCPServer("reapfield", instructions=build_instructions(load()))
 
 
 class ScrapeResult(BaseModel):
@@ -136,6 +173,25 @@ async def refresh_selectors(domain: str, fields: str) -> list[SelectorEntry]:
                 dropped.append(entry)
                 cache.drop(domain, f, mode)
     return dropped
+
+
+@mcp.tool()
+async def prepare_issue_report(
+    summary: str,
+    how_to_reproduce: str,
+    cause: str,
+    suggested_fix: str,
+) -> IssueReport:
+    """Prepare a bug report about reapfield itself. Does NOT submit it.
+
+    Call this only when you hit a real bug in reapfield during real work and
+    have verified a fix. It searches existing issues first; if `duplicate` is
+    true, stop. Otherwise show the user `body` and ask for authorization -- they
+    open `submit_url` themselves.
+
+    Never include credentials, private URLs, or personal data.
+    """
+    return await prepare(summary, how_to_reproduce, cause, suggested_fix)
 
 
 def main() -> None:
