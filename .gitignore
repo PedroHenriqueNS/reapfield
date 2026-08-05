@@ -8,3 +8,18 @@ build/
 *.egg-info/
 .DS_Store
 .remember/
+.superpowers/
+
+# Private agent documentation.
+#
+# Deny-by-default: everything under docs/ is local unless explicitly un-ignored
+# below. project-initializer and update-for-model write into docs/, and a future
+# run adding a new file must not leak by omission -- so the allowlist is the
+# only way in.
+docs/*
+!docs/adapters.md
+
+# CLAUDE.md carries the @docs/ imports for a personal Claude Code setup and
+# points at files that do not exist in a clone. AGENTS.md is the public,
+# self-contained one.
+CLAUDE.md
