@@ -1,3 +1,4 @@
+import re
 import socket
 
 import pytest
@@ -96,7 +97,7 @@ def test_hostname_resolving_to_private_is_rejected(monkeypatch):
         "getaddrinfo",
         lambda *a, **kw: [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("127.0.0.1", 80))],
     )
-    with pytest.raises(UnsafeURL, match="127.0.0.1"):
+    with pytest.raises(UnsafeURL, match=re.escape("127.0.0.1")):
         mcp_server.check_url("http://totally-innocent.example.com/")
 
 

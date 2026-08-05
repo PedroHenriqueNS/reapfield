@@ -201,10 +201,10 @@ async def _via_browser(url: str, cfg: Config) -> Response:
                 url, wait_until="domcontentloaded", timeout=cfg.timeout * 1000
             )
             if dcfg.wait_for:
-                try:
+                try:  # noqa: SIM105 - contextlib.suppress would blur why this is expected
                     await page.wait_for_selector(dcfg.wait_for, timeout=cfg.timeout * 1000)
-                except Exception:
-                    pass  # the selector never appearing is a miss, not a crash
+                except Exception:  # the selector never appearing is a miss, not a crash
+                    pass
 
             for _ in range(cfg.scroll):
                 before = await page.evaluate("document.body.scrollHeight")
@@ -247,19 +247,21 @@ async def fetch(url: str, cfg: Config, responses: ResponseCache | None = None) -
 
     dcfg = cfg.for_domain(_domain(url))
 
-    async with _concurrency_gate(cfg):
-        async with httpx.AsyncClient(follow_redirects=True, transport=TRANSPORT) as client:
-            parser = await _robots_for(client, url, cfg.user_agent)
-            if parser is not None and not parser.can_fetch(cfg.user_agent, url):
-                raise RobotsDisallowed(f"robots.txt disallows {url} -- nothing was fetched")
-            crawl_delay = parser.crawl_delay(cfg.user_agent) if parser else None
+    async with (
+        _concurrency_gate(cfg),
+        httpx.AsyncClient(follow_redirects=True, transport=TRANSPORT) as client,
+    ):
+        parser = await _robots_for(client, url, cfg.user_agent)
+        if parser is not None and not parser.can_fetch(cfg.user_agent, url):
+            raise RobotsDisallowed(f"robots.txt disallows {url} -- nothing was fetched")
+        crawl_delay = parser.crawl_delay(cfg.user_agent) if parser else None
 
-            await _wait_turn(url, cfg, float(crawl_delay) if crawl_delay else None)
+        await _wait_turn(url, cfg, float(crawl_delay) if crawl_delay else None)
 
-            if dcfg.fetcher == "browser":
-                resp = await _via_browser(url, cfg)
-            else:
-                resp = await _via_http(client, url, cfg)
+        if dcfg.fetcher == "browser":
+            resp = await _via_browser(url, cfg)
+        else:
+            resp = await _via_http(client, url, cfg)
 
     responses.put(url, resp.status, resp.html, resp.via)
     return resp

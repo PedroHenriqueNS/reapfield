@@ -22,13 +22,13 @@ def pick(scope: LexborNode, entry: SelectorEntry) -> str | None:
     """None means the selector matched nothing -- which is a cache miss."""
     try:
         node = scope.css_first(entry.selector)
-    except Exception:
-        return None  # malformed selector from a model; treat as a miss
+    except Exception:  # a malformed selector from a model is expected input
+        return None
     return value_of(node, entry.attr) if node is not None else None
 
 
 def rows(scope: LexborNode, selector: str) -> list[LexborNode]:
     try:
         return scope.css(selector)
-    except Exception:
+    except Exception:  # a malformed selector from a model is expected input
         return []

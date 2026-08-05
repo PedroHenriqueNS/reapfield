@@ -7,7 +7,7 @@ there. So those domains fail loudly and name the API instead.
 
 from __future__ import annotations
 
-from typing import Awaitable, Callable
+from collections.abc import Awaitable, Callable
 from urllib.parse import urlsplit
 
 from .errors import GatedPlatform

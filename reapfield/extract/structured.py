@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Any
+from typing import Any, Literal
 
 from selectolax.lexbor import LexborHTMLParser
 
@@ -43,9 +43,8 @@ def _blobs(tree: LexborHTMLParser) -> list[Any]:
             out.append(b)
     for node in tree.css("script"):
         raw = node.text() or ""
-        if "__NUXT__" in raw and (m := _NUXT.search(raw)):
-            if (b := _loads(m.group(1))) is not None:
-                out.append(b)
+        if "__NUXT__" in raw and (m := _NUXT.search(raw)) and (b := _loads(m.group(1))) is not None:
+            out.append(b)
     for node in tree.css('script[type="application/json"]'):
         if (b := _loads(node.text())) is not None:
             out.append(b)
@@ -117,7 +116,7 @@ def _items(blob: Any) -> list[dict] | None:
     return None
 
 
-def extract(html: str, fields: list[Field]) -> tuple[list[dict], str | None]:
+def extract(html: str, fields: list[Field]) -> tuple[list[dict], Literal["one", "many"] | None]:
     """(records, detected_mode). Mode is None when nothing was found."""
     tree = LexborHTMLParser(html)
     blobs = _blobs(tree)

@@ -35,7 +35,9 @@ def _render(node: LexborNode, depth: int, max_depth: int) -> str:
         text = re.sub(r"\s+", " ", node.text_content or "").strip()
         return text[:TEXT_LIMIT]
 
-    if tag in DROP_TAGS or tag.startswith("_") or tag.startswith("!"):
+    # selectolax names pseudo-nodes "-text" / "-comment"; anything with a "-"
+    # prefix other than text is markup we do not want in the payload.
+    if tag in DROP_TAGS or tag.startswith("-"):
         return ""
     if depth > max_depth:
         return ""

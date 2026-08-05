@@ -7,18 +7,20 @@ only one of them is a bug.
 
 from __future__ import annotations
 
-from importlib.metadata import PackageNotFoundError, version as _pkg_version
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as _pkg_version
 from urllib.parse import urljoin, urlsplit
 
 from selectolax.lexbor import LexborHTMLParser
 
-from . import adapters, fetch as fetch_mod
+from . import adapters
+from . import fetch as fetch_mod
 from .cache import ResponseCache, SelectorCache
 from .config import Config, load
 from .extract import DeriveFn, Extraction, extract
 from .spec import Field, build_model, parse_fields
 
-__all__ = ["scrape", "Extraction", "Field", "Config", "load", "parse_fields", "build_model"]
+__all__ = ["Config", "Extraction", "Field", "build_model", "load", "parse_fields", "scrape"]
 
 try:
     __version__ = _pkg_version("reapfield")
@@ -57,7 +59,8 @@ async def scrape(
     # 1. An official API beats scraping every time.
     adapters.guard(url)
     if adapter := adapters.lookup(url):
-        return Extraction(await adapter(url, parsed), cfg.mode if cfg.mode != "auto" else "many")
+        detected = cfg.mode if cfg.mode != "auto" else "many"
+        return Extraction(await adapter(url, parsed), detected)
 
     responses = ResponseCache(ttl=cfg.cache_ttl, enabled=cfg.use_cache)
     resp = await fetch_mod.fetch(url, cfg, responses)

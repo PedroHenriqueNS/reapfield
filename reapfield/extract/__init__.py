@@ -14,8 +14,10 @@ offline with a stub and no API key.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field as dc_field
-from typing import Awaitable, Callable, Literal
+from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
+from dataclasses import field as dc_field
+from typing import Literal, cast
 from urllib.parse import urlsplit
 
 from selectolax.lexbor import LexborHTMLParser
@@ -135,7 +137,10 @@ def _merge(base: list[dict], extra: list[dict]) -> list[dict]:
         return extra
     if len(base) != len(extra):
         return base
-    return [{**b, **{k: v for k, v in e.items() if v is not None}} for b, e in zip(base, extra)]
+    return [
+        {**b, **{k: v for k, v in e.items() if v is not None}}
+        for b, e in zip(base, extra, strict=True)
+    ]
 
 
 # --- the selector path ------------------------------------------------------
@@ -150,13 +155,18 @@ async def _by_selector(
     dcfg: DomainConfig,
     cache: SelectorCache,
     derive: DeriveFn,
-    mode: str | None,
+    mode_hint: str | None,
     budget: int,
 ) -> tuple[list[dict], str, int, dict[str, str]]:
     """Config pins -> cache -> derive -> coercion guard -> maybe derive once more."""
     misses: dict[str, str] = {}
     calls = 0
     pins = _pinned(dcfg, fields)
+
+    # Resolve the Optional once. Everything below this line uses a real mode,
+    # which is what lets the cache key, _apply and _remember all agree.
+    mode: str = mode_hint or "one"
+    guessed = mode_hint is None
 
     if cfg.refresh:
         for f in fields:
@@ -166,15 +176,12 @@ async def _by_selector(
 
     # Cardinality from the cache: probe `many` first, since mode is part of the key.
     entries: dict[str, SelectorEntry] = {}
-    guessed = mode is None
     if guessed:
         many = _cached(cache, domain, fields, "many")
         row = _row_of(many)
         scope = tree.body or tree.root
         if row and scope is not None and len(selectors.rows(scope, row)) >= 2:
             mode, entries, guessed = "many", many, False
-        else:
-            mode = "one"
 
     if not entries:
         entries = _cached(cache, domain, fields, mode)
@@ -308,4 +315,7 @@ async def extract(
         else:
             misses.pop(f.name, None)
 
-    return Extraction(records, forced or mode, misses, calls)
+    # `mode` here is _by_selector's plain-str return (by the brief's own design --
+    # threading Literal through _apply/_remember/the cache key is scope creep for
+    # this task), so the checker can't see it's always "one"/"many". It is.
+    return Extraction(records, cast(Literal["one", "many"], forced or mode), misses, calls)

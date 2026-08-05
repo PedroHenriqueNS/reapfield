@@ -10,6 +10,7 @@ import os
 import tomllib
 from dataclasses import dataclass, field, replace
 from pathlib import Path
+from typing import Literal
 
 DEFAULT_UA = "reapfield/0.1 (+https://github.com/PedroHenriqueNS/reapfield)"
 DEFAULT_MODEL = "claude-haiku-4-5-20251001"
@@ -43,7 +44,7 @@ class Config:
     domains: dict[str, DomainConfig] = field(default_factory=dict)
 
     # Runtime flags, set from CLI/MCP -- not read from the TOML.
-    mode: str = "auto"  # auto | one | many
+    mode: Literal["auto", "one", "many"] = "auto"
     no_llm: bool = False
     max_llm_calls: int = 2
     refresh: bool = False

@@ -56,6 +56,7 @@ async def derive(
 ) -> dict[str, SelectorEntry]:
     """Returns {field_name: SelectorEntry}. Entry.row carries the container."""
     from anthropic import AnthropicError, AsyncAnthropic
+    from anthropic.types import TextBlock
 
     client = AsyncAnthropic()
     try:
@@ -71,7 +72,7 @@ async def derive(
         # through HTML that was never the problem.
         raise DerivationFailed(f"could not reach the Anthropic API: {exc}") from exc
 
-    text = "".join(b.text for b in resp.content if getattr(b, "type", "") == "text")
+    text = "".join(b.text for b in resp.content if isinstance(b, TextBlock))
 
     try:
         data = _parse(text)

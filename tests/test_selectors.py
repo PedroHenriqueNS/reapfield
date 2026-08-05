@@ -10,7 +10,7 @@ DOMAIN = "books.toscrape.com"
 async def test_cached_selector_hit(cfg, cache, never_derive):
     """A pre-seeded cache extracts with zero LLM calls. This is the steady state."""
     fields = parse_fields("title, price:float, in_stock:bool")
-    for f, sel in zip(fields, ["h1", ".price_color", ".instock.availability"]):
+    for f, sel in zip(fields, ["h1", ".price_color", ".instock.availability"], strict=True):
         cache.put(DOMAIN, f, "one", entry(sel))
 
     result = await extract(fixture("detail.html"), URL, fields, cfg, cache, never_derive)

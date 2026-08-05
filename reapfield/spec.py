@@ -67,7 +67,7 @@ def build_model(fields: list[Field]) -> type[BaseModel]:
 # whole tool is useless on real pages. These rules are per-*type*, never
 # per-field-name, so the invariant holds.
 
-_NUM = re.compile(r"-?\d[\d,  ]*(?:\.\d+)?")
+_NUM = re.compile(r"-?\d[\d,  ]*(?:\.\d+)?")  # noqa: RUF001 - NBSP is a real thousands separator
 # Negations checked first: "In stock (22 available)" must not match on "available".
 _FALSE = re.compile(
     r"(out of stock|sold out|not available|unavailable|not in stock|\bno\b|\bfalse\b|\boff\b)",
@@ -96,10 +96,10 @@ def coerce_text(text: str, typ: type) -> Any:
             return True
         raise ValueError(f"cannot read {text!r} as bool")
 
-    m = _NUM.search(text.replace(" ", " "))
+    m = _NUM.search(text.replace(" ", " "))  # noqa: RUF001 - NBSP normalized to a plain space
     if not m:
         raise ValueError(f"no number in {text!r}")
-    cleaned = re.sub(r"[,  ]", "", m.group(0))
+    cleaned = re.sub(r"[,  ]", "", m.group(0))  # noqa: RUF001 - NBSP is a real thousands separator
     try:
         return int(cleaned) if typ is int else float(cleaned)
     except ValueError as exc:

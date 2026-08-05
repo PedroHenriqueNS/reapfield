@@ -15,7 +15,8 @@ from typing import Any, Literal
 from urllib.parse import urlsplit
 
 from mcp.server import MCPServer  # SDK v2 renamed FastMCP -> MCPServer
-from pydantic import BaseModel, Field as PField
+from pydantic import BaseModel
+from pydantic import Field as PField
 
 from . import scrape as scrape_core
 from .cache import SelectorCache, SelectorEntry

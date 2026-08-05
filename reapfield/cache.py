@@ -13,7 +13,7 @@ import hashlib
 import json
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Literal
 
@@ -35,7 +35,7 @@ class SelectorEntry:
 
     @staticmethod
     def now() -> str:
-        return datetime.now(timezone.utc).isoformat(timespec="seconds")
+        return datetime.now(UTC).isoformat(timespec="seconds")
 
 
 def _safe(domain: str) -> str:
