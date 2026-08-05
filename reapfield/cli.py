@@ -6,7 +6,7 @@ import argparse
 import asyncio
 import sys
 
-from . import output, scrape
+from . import __version__, output, scrape
 from .config import load
 from .errors import ReapfieldError
 from .spec import parse_fields
@@ -18,6 +18,11 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="reapfield",
         description="Scrape a URL into structured JSON from a natural-language field spec.",
+    )
+    p.add_argument(
+        "--version",
+        action="version",
+        version=f"reapfield {__version__}",
     )
     p.add_argument("url")
     p.add_argument(
@@ -69,6 +74,14 @@ def main(argv: list[str] | None = None) -> int:
         print(f"reapfield: {exc}", file=sys.stderr)
         return EXIT_FAIL
     except KeyboardInterrupt:
+        return EXIT_FAIL
+    except Exception as exc:  # unexpected means a bug in reapfield
+        print(
+            f"reapfield: unexpected {type(exc).__name__}: {exc}\n"
+            "reapfield: this is a bug. Please report it at "
+            "https://github.com/PedroHenriqueNS/reapfield/issues",
+            file=sys.stderr,
+        )
         return EXIT_FAIL
 
     # The detected mode goes to stderr on every run, so a cardinality flip is
