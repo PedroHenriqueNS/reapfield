@@ -1,0 +1,278 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   reapfield — "field at dusk".
+
+   Utilities live in the markup. This file holds only two things: the theme
+   tokens, and the component classes that would otherwise be the same long
+   utility string repeated across eight sections.
+
+   THE ONE PALETTE RULE
+   `paid` (gold) means "this cost money". `free` (mint) means "this was free".
+   Neither may be used for anything else: not a hover state, not a border, not
+   generic emphasis. The hero's payoff only reads while those two hues mean
+   exactly one thing each.
+
+   They are also never interpolated into one another. The midpoint of #E8B04B
+   and #5FE3B0 is olive, so wherever both appear they are separated by dark.
+
+   THE ONE MOTION RULE
+   This file encodes the FINAL state of every animation. Nothing is parked at
+   opacity 0 waiting for JS to reveal it. GSAP supplies only the start, inside
+   the no-preference branch, and hides things itself. So reduced motion is
+   identical to JS-disabled, and both land fully composed.
+
+   The single `opacity: 0` here is `.tok-gold`, which is legitimate: gold is
+   the OUTGOING copy of the hero token, so zero is genuinely its end state.
+--------------------------------------------------------------------------- */
+
+@font-face {
+  font-family: "Archivo";
+  src: url("/fonts/archivo-latin-var.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+  /* Latin subset as served by Google Fonts. Licence: public/fonts/OFL.txt */
+}
+
+@theme {
+  --color-base-0: #06090b;
+  --color-base-1: #0a1410;
+  --color-base-2: #0d1a15;
+  --color-rule: #1c2a24;
+  --color-rule-soft: #14201b;
+
+  /* semantic cost colours; see the palette rule above */
+  --color-paid: #e8b04b;
+  --color-free: #5fe3b0;
+
+  --color-fg: #e6ede9;
+  --color-fg-dim: #7c8c85;
+  --color-fg-faint: #4d5a55;
+
+  --font-display: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+
+  --text-micro: clamp(0.78rem, 0.76rem + 0.1vw, 0.84rem);
+  --text-copy: clamp(0.95rem, 0.92rem + 0.15vw, 1.05rem);
+  --text-lead: clamp(1.15rem, 1.05rem + 0.5vw, 1.4rem);
+  --text-sub: clamp(1.45rem, 1.25rem + 1vw, 2rem);
+  --text-h2: clamp(1.9rem, 1.5rem + 2vw, 3rem);
+  --text-h1: clamp(2.4rem, 1.6rem + 3.6vw, 4.6rem);
+  --text-code: clamp(0.72rem, 0.62rem + 0.34vw, 0.86rem);
+
+  --spacing-section: clamp(4.5rem, 3rem + 7vw, 8.5rem);
+  --spacing-gutter: clamp(1.15rem, 0.6rem + 2.5vw, 2.5rem);
+
+  --container-shell: 1180px;
+
+  /* Shape: exactly two radii, applied by a documented rule.
+     chip = badges, buttons, inline chips.  card = panels, terminals. */
+  --radius-chip: 4px;
+  --radius-card: 10px;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-fg);
+    outline-offset: 3px;
+    border-radius: var(--radius-chip);
+  }
+}
+
+@layer components {
+  .shell {
+    @apply mx-auto w-full max-w-shell px-gutter;
+  }
+
+  .section {
+    @apply relative py-section;
+  }
+
+  .section + .section {
+    @apply border-t border-rule-soft;
+  }
+
+  /* ---- type ------------------------------------------------------------ */
+
+  .h-display {
+    @apply text-h1 font-bold leading-[1.02] tracking-[-0.035em] text-balance;
+  }
+
+  .h-section {
+    @apply max-w-[22ch] text-h2 font-semibold leading-[1.08] tracking-[-0.028em] text-balance;
+  }
+
+  .lede {
+    @apply max-w-[62ch] text-lead leading-[1.55] text-fg-dim;
+  }
+
+  .copy {
+    @apply max-w-[62ch] text-fg-dim;
+  }
+
+  .copy strong {
+    @apply font-semibold text-fg;
+  }
+
+  /* Rationed to at most one per three sections, page-wide. */
+  .eyebrow {
+    @apply font-mono text-micro tracking-[0.16em] text-fg-faint uppercase;
+  }
+
+  /* ---- hairline. Animated with scaleX, never width. -------------------- */
+
+  .rule {
+    @apply h-px origin-left border-0 bg-rule;
+  }
+
+  /* ---- terminal --------------------------------------------------------
+     `min-width: 0` matters: grid and flex items default to `min-width: auto`,
+     which lets an unbreakable child (a long command set in nowrap) push its
+     whole track wider than the viewport. Opting out keeps the overflow inside
+     this box's own scroll container.                                       */
+
+  .term {
+    @apply min-w-0 overflow-hidden rounded-card border border-rule bg-base-2;
+  }
+
+  .term__bar {
+    @apply flex items-center gap-3 border-b border-rule px-4 py-2.5 font-mono text-micro text-fg-faint;
+  }
+
+  .term__body {
+    @apply m-0 overflow-x-auto px-4.5 pt-4 pb-5 font-mono text-code leading-[1.75] text-fg;
+    tab-size: 2;
+  }
+
+  .term__body .c {
+    @apply text-fg-faint;
+  }
+
+  .term__body .k {
+    @apply text-fg-dim;
+  }
+
+  .term__body .s {
+    @apply text-free;
+  }
+
+  /* ---- the hero token: gold drains to mint, revealing mint underneath -- */
+
+  .tok {
+    @apply relative inline-block whitespace-nowrap;
+  }
+
+  .tok-free {
+    @apply text-free;
+  }
+
+  /* Legitimate opacity-0: gold is the outgoing state, so 0 IS its end value. */
+  .tok-gold {
+    @apply pointer-events-none absolute inset-0 text-paid opacity-0;
+  }
+
+  /* ---- chips, buttons, links ------------------------------------------ */
+
+  .chip {
+    @apply inline-flex items-center gap-2 rounded-chip border border-rule bg-base-1 px-2.5 py-1 font-mono text-micro text-fg-dim;
+  }
+
+  .btn {
+    @apply inline-flex items-center gap-2 rounded-chip border border-rule bg-base-2 px-5 py-3 font-mono text-micro text-fg no-underline transition-[border-color,transform] duration-200 ease-out;
+  }
+
+  .btn:hover {
+    @apply border-fg-faint;
+  }
+
+  .btn:active {
+    @apply translate-y-px;
+  }
+
+  .btn-primary {
+    @apply border-fg bg-fg font-semibold text-base-0;
+  }
+
+  .btn-primary:hover {
+    @apply border-white bg-white;
+  }
+
+  .link {
+    @apply border-b border-rule pb-px text-fg no-underline transition-colors duration-200;
+  }
+
+  .link:hover {
+    @apply border-fg-dim;
+  }
+
+  /* ---- static gradient meshes -----------------------------------------
+     These never animate. An animated mesh would need background-position or
+     filter, both of which fall outside the transform/opacity budget. All the
+     moving light on this page comes from the hero canvas instead.          */
+
+  .mesh {
+    @apply pointer-events-none absolute inset-0 z-0;
+  }
+
+  /* Gold and mint each own whole sections and never meet inside one gradient,
+     because interpolating between them passes through olive. */
+
+  .mesh-mint {
+    background:
+      radial-gradient(
+        75% 65% at 6% -5%,
+        color-mix(in srgb, var(--color-free) 22%, transparent),
+        transparent 62%
+      ),
+      radial-gradient(
+        45% 40% at 96% 10%,
+        color-mix(in srgb, var(--color-free) 10%, transparent),
+        transparent 68%
+      ),
+      radial-gradient(
+        60% 50% at 40% 108%,
+        color-mix(in srgb, var(--color-free) 8%, transparent),
+        transparent 70%
+      ),
+      linear-gradient(180deg, var(--color-base-1), var(--color-base-0) 78%);
+  }
+
+  .mesh-paid {
+    background:
+      radial-gradient(
+        60% 60% at 92% 2%,
+        color-mix(in srgb, var(--color-paid) 18%, transparent),
+        transparent 64%
+      ),
+      radial-gradient(
+        50% 55% at 2% 95%,
+        color-mix(in srgb, var(--color-paid) 9%, transparent),
+        transparent 70%
+      ),
+      linear-gradient(180deg, var(--color-base-0), var(--color-base-1) 92%);
+  }
+
+  .mesh-deep {
+    background:
+      radial-gradient(
+        70% 55% at 50% 112%,
+        color-mix(in srgb, var(--color-free) 16%, transparent),
+        transparent 68%
+      ),
+      linear-gradient(180deg, var(--color-base-0), var(--color-base-1));
+  }
+}

@@ -1,0 +1,27 @@
+---
+import Base from "../layouts/Base.astro";
+import Hero from "../components/01-Hero.astro";
+import Idea from "../components/02-Idea.astro";
+import FreePaths from "../components/03-FreePaths.astro";
+import Fields from "../components/04-Fields.astro";
+import Invalidation from "../components/05-Invalidation.astro";
+import Install from "../components/06-Install.astro";
+import Mcp from "../components/07-Mcp.astro";
+import Manners from "../components/08-Manners.astro";
+---
+
+<Base
+  title="reapfield — pay for the selector once, replay it forever"
+  description="Give reapfield a URL and a plain-language field spec, get structured JSON back. It pays a language model once per field per domain to learn the CSS selectors, caches them, and replays them deterministically. Steady state is zero LLM calls."
+>
+  <main>
+    <Hero />
+    <Idea />
+    <FreePaths />
+    <Fields />
+    <Invalidation />
+    <Install />
+    <Mcp />
+    <Manners />
+  </main>
+</Base>

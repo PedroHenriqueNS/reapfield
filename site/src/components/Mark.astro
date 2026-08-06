@@ -1,0 +1,34 @@
+---
+/**
+ * The reapfield mark.
+ *
+ * An arc that reads two ways, because the name does: the sweep of a scythe
+ * through a field, and the arrow of `1 -> 0`. It terminates in a bracket
+ * corner, which is both the blade's point and a data field's delimiter.
+ *
+ * Monochrome by design. A gold-to-mint gradient stroke would interpolate
+ * through olive, which the palette rule forbids.
+ */
+interface Props {
+  size?: number;
+  class?: string;
+}
+const { size = 28, class: cls = "" } = Astro.props;
+---
+
+<svg
+  class={cls}
+  width={size}
+  height={size}
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.6"
+  stroke-linecap="square"
+  stroke-linejoin="miter"
+  aria-hidden="true"
+  focusable="false"
+>
+  <path d="M3 20.5C3 10.83 10.83 3 20.5 3" />
+  <path d="M13.5 3H20.5V10" />
+</svg>

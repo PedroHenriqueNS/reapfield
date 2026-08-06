@@ -1,0 +1,59 @@
+---
+import Mark from "./Mark.astro";
+
+const MANNERS = [
+  "robots.txt is obeyed, and there is deliberately no override flag.",
+  "Every domain is rate limited, and a Crawl-delay in robots.txt always wins over the config.",
+  "The user agent is honest and identifiable, never randomized.",
+];
+---
+
+<section class="section overflow-hidden" id="manners">
+  <div class="mesh mesh-deep"></div>
+
+  <div class="shell relative z-10">
+    <h2 class="h-display max-w-[16ch]" data-reveal>
+      When a site refuses, reapfield stops.
+    </h2>
+
+    <p class="lede mt-6" data-reveal>
+      Defeating anti-bot systems is not a goal, and it is not on a roadmap
+      somewhere. Cloudflare, DataDome and PerimeterX are detected, named in the
+      error, and obeyed.
+    </p>
+
+    <ul class="mt-10 grid max-w-[72ch]">
+      {
+        MANNERS.map((m) => (
+          <li
+            class="border-t border-rule-soft py-3 text-copy text-fg-dim first:border-t-0"
+            data-reveal
+          >
+            {m}
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<footer class="border-t border-rule py-10">
+  <div class="shell flex flex-wrap items-center justify-between gap-6">
+    <div class="inline-flex items-center gap-2 text-micro text-fg-dim">
+      <Mark size={18} />
+      <span>reapfield</span>
+    </div>
+    <div class="inline-flex gap-6 font-mono text-micro">
+      <a
+        class="link"
+        href="https://github.com/PedroHenriqueNS/reapfield"
+        rel="noopener">GitHub</a
+      >
+      <a
+        class="link"
+        href="https://github.com/PedroHenriqueNS/reapfield/blob/main/LICENSE"
+        rel="noopener">MIT</a
+      >
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,67 @@
+---
+import Terminal from "./Terminal.astro";
+
+const UNRELEASED = [
+  "pip install reapfield",
+  "uv tool install reapfield",
+  "uvx reapfield",
+];
+---
+
+<section class="section" id="install">
+  <div class="shell">
+    <p class="eyebrow" data-reveal>Install</p>
+    <h2 class="h-section mt-2" data-reveal>One of these works today.</h2>
+
+    <!-- min-w-0 on the columns is load-bearing: grid items default to
+         `min-width: auto`, so the nowrap install commands would otherwise
+         widen the whole page past the viewport on mobile. -->
+    <div class="mt-10 grid items-start gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
+      <!-- The unreleased path. Marked, dimmed, struck through, and stated in
+           plain language. A visitor who reads only this column must still not
+           walk away believing pip install works. -->
+      <div class="min-w-0" data-reveal>
+        <div class="mb-3">
+          <span class="chip border-paid/40 text-paid">not yet published</span>
+        </div>
+        <div
+          class="grid min-w-0 gap-2 rounded-card border border-dashed border-rule bg-base-2/55 px-4.5 py-4"
+        >
+          {
+            UNRELEASED.map((cmd) => (
+              <code class="block min-w-0 overflow-x-auto whitespace-nowrap font-mono text-code text-fg-faint line-through decoration-paid/60 decoration-1">
+                {cmd}
+              </code>
+            ))
+          }
+        </div>
+        <p class="copy mt-3 text-micro text-fg-faint">
+          These are the intended install paths once a release ships. Nothing is
+          on PyPI yet, so all three are dead today.
+        </p>
+      </div>
+
+      <!-- The path that actually works. -->
+      <div class="min-w-0" data-reveal>
+        <div class="mb-3">
+          <span class="chip border-free/35 text-free">works today</span>
+        </div>
+        <Terminal label="from source">
+          git clone https://github.com/PedroHenriqueNS/reapfield.git
+          <br />cd reapfield
+          <br />uv sync
+          <br />uv run playwright install chromium&#32;&#32;<span class="c"
+            ># only for JS-rendered pages</span
+          >
+          <br />export ANTHROPIC_API_KEY=sk-...&#32;&#32;<span class="c"
+            ># only the first time a domain is scraped</span
+          >
+        </Terminal>
+        <p class="copy mt-3 text-micro">
+          Everything else on this page assumes you are in that cloned directory,
+          running commands with <code class="font-mono text-fg">uv run</code>.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>

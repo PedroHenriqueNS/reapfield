@@ -1,0 +1,75 @@
+---
+import Terminal from "./Terminal.astro";
+
+/* Descriptions are the tools' real docstrings from reapfield/mcp_server.py,
+   not marketing paraphrase. */
+const TOOLS = [
+  { name: "scrape", desc: "Extract structured fields from a web page." },
+  {
+    name: "list_cached_selectors",
+    desc: "Show the CSS selectors already learned for a domain. Costs nothing.",
+  },
+  {
+    name: "refresh_selectors",
+    desc: "Forget the cached selectors for these fields so the next scrape re-derives them.",
+  },
+  {
+    name: "prepare_issue_report",
+    desc: "Prepare a bug report about reapfield itself. Does NOT submit it.",
+  },
+];
+---
+
+<section class="section" id="mcp">
+  <div class="shell">
+    <p class="eyebrow" data-reveal>MCP server</p>
+    <h2 class="h-section mt-2" data-reveal>The same core, over stdio.</h2>
+
+    <div class="mt-10 max-w-[60ch]" data-reveal>
+      <Terminal label="add it to a client">
+        claude mcp add reapfield --scope local -- uv run reapfield-mcp
+      </Terminal>
+    </div>
+
+    <ul class="mt-10 grid">
+      {
+        TOOLS.map((t) => (
+          <li
+            class="grid gap-1 border-t border-rule-soft py-3 first:border-t-0 md:grid-cols-[15rem_1fr] md:items-baseline md:gap-6"
+            data-reveal
+          >
+            <code class="min-w-0 font-mono text-copy font-semibold text-fg">
+              {t.name}
+            </code>
+            <p class="min-w-0 max-w-[60ch] text-micro text-fg-dim">{t.desc}</p>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="mt-16 border-t border-rule pt-10" data-reveal>
+      <h3 class="mb-3 text-lead font-semibold tracking-[-0.02em]">
+        A trust boundary the CLI has too
+      </h3>
+      <p class="copy">
+        CLI URLs come from you. MCP URLs come from a model that may be acting on
+        text it read off a web page. So private, loopback and link-local
+        addresses are blocked by default on <strong>both</strong>, including on
+        redirects. Redirects are followed by hand, capped at 5 hops, with the
+        check, robots.txt, rate limiting and the gated-platform guard re-applied
+        at every hop.
+      </p>
+      <p class="copy mt-3">
+        <code class="font-mono text-fg">169.254.169.254</code>, the cloud
+        metadata endpoint, is the case that matters most. Checking the <strong
+          >resolved IP</strong
+        > rather than the hostname string is what stops DNS rebinding.
+      </p>
+      <p class="copy mt-3">
+        And <code class="font-mono text-fg">prepare_issue_report</code> genuinely
+        cannot submit anything. It renders a report and returns a link. A human
+        opens it.
+      </p>
+    </div>
+  </div>
+</section>

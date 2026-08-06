@@ -1,0 +1,6 @@
+# The repo root .gitignore has no node_modules entry, so this file is
+# load-bearing: without it a first `npm install` dumps thousands of untracked
+# files into `git status`.
+node_modules/
+dist/
+.astro/

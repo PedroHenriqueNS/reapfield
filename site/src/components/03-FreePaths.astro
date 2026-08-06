@@ -1,0 +1,70 @@
+---
+const GROUPS = [
+  {
+    label: "read straight off the page",
+    rows: [
+      "JSON-LD",
+      "OpenGraph and <meta>",
+      "__NEXT_DATA__",
+      "__NUXT__",
+      "inline application/json",
+    ],
+  },
+  {
+    label: "already known",
+    rows: ["config-pinned selectors", "cached selectors"],
+  },
+];
+---
+
+<section class="section" id="paths">
+  <div class="shell">
+    <p class="eyebrow" data-reveal>Before the paid step</p>
+    <h2 class="h-section mt-2" data-reveal>Most pages never cost anything.</h2>
+
+    <div class="mt-10 grid items-start gap-10 lg:grid-cols-3">
+      {
+        GROUPS.map((g) => (
+          <div>
+            <p class="mb-2 font-mono text-micro text-fg-faint" data-reveal>
+              {g.label}
+            </p>
+            <ul class="grid">
+              {g.rows.map((r) => (
+                <li
+                  class="grid grid-cols-[12px_1fr_auto] items-center gap-3 border-t border-rule-soft py-2.5 font-mono text-micro first:border-t-0"
+                  data-reveal
+                >
+                  <span class="h-px bg-rule" aria-hidden="true" />
+                  <span class="min-w-0 text-fg">{r}</span>
+                  <span class="text-free">free</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+
+      <div>
+        <p class="mb-2 font-mono text-micro text-fg-faint" data-reveal>
+          only if all of that missed
+        </p>
+        <ul class="grid">
+          <li
+            class="grid grid-cols-[12px_1fr_auto] items-center gap-3 rounded-card border border-paid/30 bg-base-1 px-4 py-2.5 font-mono text-micro"
+            data-reveal
+          >
+            <span class="h-px bg-rule" aria-hidden="true"></span>
+            <span class="min-w-0 text-fg">one batched LLM derivation</span>
+            <span class="text-paid">paid</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="copy mt-10" data-reveal>
+      The ladder is tried in order, and each step only handles the fields the
+      previous ones missed. Plenty of pages never reach the paid step at all.
+    </p>
+  </div>
+</section>
