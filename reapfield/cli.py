@@ -44,6 +44,13 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--cache-ttl", type=int, default=3600, metavar="SECONDS")
     p.add_argument("--scroll", type=int, default=0, metavar="N")
     p.add_argument("--paginate", type=int, default=0, metavar="N")
+    p.add_argument(
+        "--allow-private",
+        action="store_true",
+        help="DISABLES SSRF PROTECTION: permits fetching private, loopback and "
+        "link-local addresses, including redirects to them. For scraping "
+        "localhost or a LAN host during development.",
+    )
     return p
 
 
@@ -65,6 +72,7 @@ def main(argv: list[str] | None = None) -> int:
         cache_ttl=args.cache_ttl,
         scroll=args.scroll,
         paginate=args.paginate,
+        block_private=not args.allow_private,
     )
 
     try:

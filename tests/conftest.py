@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import ipaddress
 import pathlib
+import socket
 
 import pytest
 
@@ -22,11 +24,27 @@ def fixture(name: str) -> str:
 def _no_network(monkeypatch):
     """Any test that reaches the real network fails loudly instead of hanging."""
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("REAPFIELD_MCP_ALLOW_PRIVATE", raising=False)
+    monkeypatch.setattr(socket, "getaddrinfo", _fake_getaddrinfo)
     fetch_mod.reset()
     fetch_mod.TRANSPORT = None
     yield
     fetch_mod.reset()
     fetch_mod.TRANSPORT = None
+
+
+def _fake_getaddrinfo(host, port=0, *args, **kwargs):
+    """DNS is network. Names answer public; literal IPs answer as themselves.
+
+    So a test that wants a private resolution has to say so -- either by using a
+    literal private IP, or by stubbing this itself.
+    """
+    try:
+        ip = str(ipaddress.ip_address(host.strip("[]")))
+    except ValueError:
+        ip = "93.184.216.34"  # example.com; public, and not a real target
+    family = socket.AF_INET6 if ":" in ip else socket.AF_INET
+    return [(family, socket.SOCK_STREAM, socket.IPPROTO_TCP, "", (ip, port or 0))]
 
 
 @pytest.fixture

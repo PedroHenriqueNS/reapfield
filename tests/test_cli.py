@@ -45,3 +45,10 @@ def test_no_flag_is_accepted_and_then_ignored():
     }
     unused = {d for d in declared if f"args.{d}" not in source}
     assert unused == set(), f"declared but never read: {sorted(unused)}"
+
+
+def test_allow_private_is_the_only_way_to_disable_ssrf_protection():
+    from reapfield.cli import build_parser
+
+    assert build_parser().parse_args(["u", "--fields", "t"]).allow_private is False
+    assert build_parser().parse_args(["u", "--fields", "t", "--allow-private"]).allow_private

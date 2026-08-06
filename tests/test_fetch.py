@@ -160,9 +160,13 @@ def _redirect_to(target: str, *, robots: str = "", seen: list | None = None):
     return handler
 
 
-async def test_redirect_to_private_ip_is_refused(no_sleep, monkeypatch):
-    """The metadata-endpoint bypass: a public host 302s to 169.254.169.254."""
-    monkeypatch.delenv("REAPFIELD_MCP_ALLOW_PRIVATE", raising=False)
+@pytest.fixture
+def metadata_redirect(monkeypatch):
+    """A public host that 302s to the cloud metadata endpoint.
+
+    Exactly the attacker's setup: `books.toscrape.com` resolves public, so the
+    URL the user typed passes every check. The server picks the second one.
+    """
     monkeypatch.setattr(
         socket,
         "getaddrinfo",
@@ -178,10 +182,35 @@ async def test_redirect_to_private_ip_is_refused(no_sleep, monkeypatch):
     )
     _transport(_redirect_to("http://metadata.example/latest/meta-data/"))
 
+
+async def test_redirect_to_private_ip_is_refused_by_default(no_sleep, metadata_redirect):
+    """No config at all. The CLI path must be safe out of the box."""
     with pytest.raises(UnsafeURL):
-        await fetch_mod.fetch(
-            "https://books.toscrape.com/start", Config(use_cache=False, block_private=True)
-        )
+        await fetch_mod.fetch("https://books.toscrape.com/start", Config(use_cache=False))
+
+
+def test_ssrf_protection_is_on_by_default():
+    assert Config().block_private is True
+
+
+async def test_allow_private_is_the_escape_hatch(no_sleep, metadata_redirect):
+    """Someone scraping a LAN host has to ask for it, in as many words."""
+    resp = await fetch_mod.fetch(
+        "https://books.toscrape.com/start", Config(use_cache=False, block_private=False)
+    )
+    assert resp.status == 200
+
+
+async def test_a_private_url_typed_directly_is_also_refused(no_sleep):
+    _transport(lambda rq: httpx.Response(200, text="<html><body>secret</body></html>"))
+
+    with pytest.raises(UnsafeURL):
+        await fetch_mod.fetch("http://127.0.0.1:8080/admin", Config(use_cache=False))
+
+    resp = await fetch_mod.fetch(
+        "http://127.0.0.1:8080/admin", Config(use_cache=False, block_private=False)
+    )
+    assert resp.status == 200  # localhost development still works, on request
 
 
 async def test_redirect_to_disallowed_host_is_refused(no_sleep):

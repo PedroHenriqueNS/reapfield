@@ -55,9 +55,11 @@ class Config:
     paginate: int = 0
     timeout: float = 20.0
     contribute_reports: str = "ask"  # ask | never -- see reapfield/report.py
-    # MCP sets this; the CLI leaves it off. URLs from a model are attacker-
-    # influenced, so every hop they reach gets an SSRF check. See fetch.check_url.
-    block_private: bool = False
+    # On by default, both entry points. The URL a human typed is trusted; the
+    # redirect target the server picked is not, and that is the one that reaches
+    # 169.254.169.254. --allow-private (CLI) and REAPFIELD_MCP_ALLOW_PRIVATE=1
+    # are the deliberate opt-outs. See fetch.check_url.
+    block_private: bool = True
 
     def for_domain(self, domain: str) -> DomainConfig:
         return self.domains.get(domain, DomainConfig())
