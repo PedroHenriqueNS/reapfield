@@ -99,8 +99,29 @@
 }
 
 @layer components {
+  /* The gutter is the floor, the safe-area inset wins when it is larger. With
+     viewport-fit=cover the gradients run edge to edge, and env() keeps text
+     and controls clear of a notch or rounded corner in landscape. Without
+     cover support env() resolves to 0 and max() falls back to the gutter. */
   .shell {
-    @apply mx-auto w-full max-w-shell px-gutter;
+    @apply mx-auto w-full max-w-shell;
+    padding-inline:
+      max(var(--spacing-gutter), env(safe-area-inset-left))
+      max(var(--spacing-gutter), env(safe-area-inset-right));
+  }
+
+  .safe-bottom {
+    padding-bottom: max(2.5rem, env(safe-area-inset-bottom));
+  }
+
+  /* Inline code inside prose. Long unbreakable identifiers such as
+     prepare_issue_report pushed the page 101px wide at 320px with text scaled
+     to 200%, and the overflow was clipped rather than reachable. Block code
+     in .term__body deliberately does NOT get this: it stays nowrap and is
+     reached through its own horizontal scroll. */
+  .code-inline {
+    @apply font-mono text-[0.92em] text-fg;
+    overflow-wrap: anywhere;
   }
 
   .section {

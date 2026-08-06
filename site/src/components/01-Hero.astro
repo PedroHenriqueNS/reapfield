@@ -17,7 +17,12 @@ const HEADLINE = [
 ---
 
 <header class="relative z-30 border-b border-rule-soft">
-  <div class="shell flex h-[66px] items-center justify-between">
+  <!-- min-h rather than a fixed h, and allowed to wrap: at 200% text on a
+       320px viewport the brand and the link no longer fit one line, and a
+       fixed height clipped the link instead of letting the header grow. -->
+  <div
+    class="shell flex min-h-[66px] flex-wrap items-center justify-between gap-x-4"
+  >
     <a
       class="-ml-3 inline-flex min-h-11 items-center gap-2.5 px-3 font-semibold tracking-[-0.02em] text-fg no-underline"
       href="/"
