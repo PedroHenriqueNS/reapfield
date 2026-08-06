@@ -1,13 +1,19 @@
 ---
+/* Order verified against reapfield/extract/structured.py, not against the
+   README. `_blobs()` yields JSON-LD, __NEXT_DATA__, __NUXT__ then inline JSON,
+   and `extract()` merges them into `flat` with setdefault so the earliest wins.
+   `_meta()` is merged LAST, so OpenGraph and <meta> are the lowest-precedence
+   source rather than the second one. README.md lists meta second, which is
+   wrong; this page follows the code. */
 const GROUPS = [
   {
     label: "read straight off the page",
     rows: [
       "JSON-LD",
-      "OpenGraph and <meta>",
       "__NEXT_DATA__",
       "__NUXT__",
       "inline application/json",
+      "OpenGraph and <meta>",
     ],
   },
   {
