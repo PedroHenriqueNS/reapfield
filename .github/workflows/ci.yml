@@ -58,5 +58,24 @@ jobs:
       - run: uv sync
       - name: Ruff
         run: uv run ruff check .
-      - name: Pyright (advisory)
-        run: uv run pyright reapfield || true
+      # `reduce.py` has exactly 2 known false positives from selectolax's type
+      # stubs (they declare `node.tag` as `str | None` when it's never None in
+      # practice -- see CONTRIBUTING.md). pyright can't be told to ignore just
+      # those two, so this asserts the error *count* instead of masking every
+      # failure with `|| true`: a third error (anywhere) fails the build, while
+      # the two tolerated ones stay invisible to the exit code.
+      - name: "Pyright (baseline: 2 known reduce.py false positives)"
+        run: |
+          uv run pyright --outputjson reapfield > pyright.json || true
+          python3 -c "
+          import json, sys
+          data = json.load(open('pyright.json'))
+          count = data['summary']['errorCount']
+          print(f'pyright error count: {count} (expected 2)')
+          if count != 2:
+              for d in data['diagnostics']:
+                  if d['severity'] == 'error':
+                      line = d['range']['start']['line'] + 1
+                      print(f\"{d['file']}:{line}: {d['message']}\")
+              sys.exit(1)
+          "
