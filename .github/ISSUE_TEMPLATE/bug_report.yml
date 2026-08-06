@@ -1,0 +1,38 @@
+name: Bug report
+description: Something behaves incorrectly
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+    validations:
+      required: true
+  - type: input
+    id: command
+    attributes:
+      label: Command
+      placeholder: reapfield https://example.com --fields "title, price:float"
+    validations:
+      required: true
+  - type: input
+    id: diagnostic
+    attributes:
+      label: The reapfield stderr line
+      description: >-
+        The line beginning `reapfield: mode=`, if the run got far enough to print it.
+        Leave blank if it crashed before that.
+      placeholder: "reapfield: mode=one records=1 llm_calls=0"
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `reapfield --version`
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: OS and Python version
+    validations:
+      required: true
