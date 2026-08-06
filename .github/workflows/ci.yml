@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v7
+
+      # The interpreter comes from setup-python, NOT `uv python install`.
+      # uv's managed CPython 3.13.12 build breaks `cryptography`, which `mcp`
+      # imports at load. uv manages dependencies only.
+      - uses: actions/setup-python@v7
+        id: setup-python
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # astral-sh publishes no floating `v9` tag (only exact patch tags), so this
+      # is pinned exact — don't "helpfully" shorten it back to @v9.
+      - uses: astral-sh/setup-uv@v9.0.0
+        with:
+          enable-cache: true
+
+      # Point uv at the interpreter setup-python installed. Passing a bare
+      # version string here would let uv download its OWN build, which is the
+      # exact thing this job avoids.
+      - name: Install dependencies
+        run: uv sync --python "${{ steps.setup-python.outputs.python-path }}"
+
+      - name: Confirm the interpreter is the one setup-python provided
+        run: uv run python -c "import sys; print(sys.executable, sys.version)"
+
+      # No Playwright: the suite is offline by construction and never opens a browser.
+      - name: Run tests
+        run: uv run pytest -q
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v9.0.0
+      - run: uv sync
+      - name: Ruff
+        run: uv run ruff check .
+      - name: Pyright (advisory)
+        run: uv run pyright reapfield || true

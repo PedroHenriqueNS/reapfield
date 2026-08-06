@@ -1,0 +1,49 @@
+name: AI agent bug report
+description: Filed by an AI agent that hit and fixed a bug while using reapfield
+labels: ["bug", "ai-reported"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This form is for reports prepared by the `prepare_issue_report` MCP tool.
+        **Do not include credentials, private URLs, or personal data.**
+  - type: checkboxes
+    id: authorized
+    attributes:
+      label: Authorization
+      options:
+        - label: A human reviewed this report and authorized submitting it
+          required: true
+        - label: The agent verified the fix, not just the diagnosis
+          required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: cause
+    attributes:
+      label: Cause
+    validations:
+      required: true
+  - type: textarea
+    id: fix
+    attributes:
+      label: Suggested fix
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Collected automatically by prepare_issue_report
+    validations:
+      required: true
