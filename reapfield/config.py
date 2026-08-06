@@ -55,6 +55,9 @@ class Config:
     paginate: int = 0
     timeout: float = 20.0
     contribute_reports: str = "ask"  # ask | never -- see reapfield/report.py
+    # MCP sets this; the CLI leaves it off. URLs from a model are attacker-
+    # influenced, so every hop they reach gets an SSRF check. See fetch.check_url.
+    block_private: bool = False
 
     def for_domain(self, domain: str) -> DomainConfig:
         return self.domains.get(domain, DomainConfig())

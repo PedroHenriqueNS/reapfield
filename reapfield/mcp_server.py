@@ -8,11 +8,7 @@ input and the server is sitting inside someone's network.
 
 from __future__ import annotations
 
-import ipaddress
-import os
-import socket
 from typing import Any, Literal
-from urllib.parse import urlsplit
 
 from mcp.server import MCPServer  # SDK v2 renamed FastMCP -> MCPServer
 from pydantic import BaseModel
@@ -21,7 +17,7 @@ from pydantic import Field as PField
 from . import scrape as scrape_core
 from .cache import SelectorCache, SelectorEntry
 from .config import Config, load
-from .errors import UnsafeURL
+from .fetch import check_url
 from .report import IssueReport, prepare
 from .spec import parse_fields
 
@@ -78,47 +74,11 @@ class ScrapeResult(BaseModel):
 
 
 # --- trust boundary ---------------------------------------------------------
-
-
-def _blocked(ip: ipaddress.IPv4Address | ipaddress.IPv6Address) -> bool:
-    return (
-        ip.is_private
-        or ip.is_loopback
-        or ip.is_link_local  # 169.254.169.254 -- the cloud metadata endpoint
-        or ip.is_reserved
-        or ip.is_multicast
-        or ip.is_unspecified
-    )
-
-
-def check_url(url: str) -> None:
-    """Raise UnsafeURL unless this is a public http(s) address.
-
-    Checks the *resolved* IPs, not the hostname string -- a name that resolves to
-    127.0.0.1 walks straight past any string-based blocklist, and that is exactly
-    how DNS rebinding works.
-    """
-    if os.environ.get("REAPFIELD_MCP_ALLOW_PRIVATE") == "1":
-        return
-
-    parts = urlsplit(url)
-    if parts.scheme not in ("http", "https"):
-        raise UnsafeURL(f"{parts.scheme or 'that'} URLs are not fetchable; use http or https")
-    if not parts.hostname:
-        raise UnsafeURL(f"no host in {url!r}")
-
-    try:
-        infos = socket.getaddrinfo(parts.hostname, parts.port or 0, proto=socket.IPPROTO_TCP)
-    except socket.gaierror as exc:
-        raise UnsafeURL(f"cannot resolve {parts.hostname}: {exc}") from exc
-
-    for info in infos:
-        ip = ipaddress.ip_address(info[4][0])
-        if _blocked(ip):
-            raise UnsafeURL(
-                f"{parts.hostname} resolves to {ip}, which is a private, loopback or "
-                "link-local address. Set REAPFIELD_MCP_ALLOW_PRIVATE=1 for local development."
-            )
+#
+# check_url lives in fetch.py, because that is the layer that knows which URLs
+# are really about to be requested -- a redirect target included. It is called
+# here too, eagerly, so an obviously unsafe URL is refused before any setup; and
+# `block_private=True` below is what makes the fetch layer enforce it per hop.
 
 
 # --- tools ------------------------------------------------------------------
@@ -140,7 +100,7 @@ async def scrape(
     `misses` explaining why -- that is a normal result, not a failure.
     """
     check_url(url)
-    cfg = load(mode=mode, refresh=refresh)
+    cfg = load(mode=mode, refresh=refresh, block_private=True)
     result = await scrape_core(url, fields, cfg)
     return ScrapeResult(
         url=url,
