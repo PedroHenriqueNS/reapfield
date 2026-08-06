@@ -191,6 +191,15 @@
     tab-size: 2;
   }
 
+  /* The terminal body is a tab stop, because a scrollable region has to be
+     keyboard reachable. Its parent .term clips at overflow: hidden with only
+     the 1px border as slack, so the base focus ring at +3px offset was drawn
+     outside the clip box and never appeared. Insetting the ring puts it back
+     inside the panel, where it is fully visible. */
+  .term__body:focus-visible {
+    outline-offset: -3px;
+  }
+
   .term__body .c {
     @apply text-fg-faint;
   }
