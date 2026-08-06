@@ -1,6 +1,6 @@
 [project]
 name = "reapfield"
-version = "0.1.0"
+version = "0.2.0"
 description = "Scrape a URL into structured JSON from a natural-language field spec"
 readme = "README.md"
 requires-python = ">=3.12"
