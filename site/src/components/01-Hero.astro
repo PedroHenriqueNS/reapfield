@@ -20,22 +20,23 @@ const HEADLINE = [
   <!-- min-h rather than a fixed h, and allowed to wrap: at 200% text on a
        320px viewport the brand and the link no longer fit one line, and a
        fixed height clipped the link instead of letting the header grow. -->
-  <div
+  <nav
+    aria-label="Primary"
     class="shell flex min-h-[66px] flex-wrap items-center justify-between gap-x-4"
   >
     <a
-      class="-ml-3 inline-flex min-h-11 items-center gap-2.5 px-3 font-semibold tracking-[-0.02em] text-fg no-underline"
+      class="-ms-3 inline-flex min-h-11 items-center gap-2.5 px-3 font-semibold tracking-[-0.02em] text-fg no-underline"
       href="/"
     >
       <Mark size={22} />
       <span>reapfield</span>
     </a>
     <a
-      class="link link-target -mr-3 font-mono text-micro"
+      class="link link-target -me-3 font-mono text-micro"
       href="https://github.com/PedroHenriqueNS/reapfield"
       rel="noopener">GitHub</a
     >
-  </div>
+  </nav>
 </header>
 
 <section

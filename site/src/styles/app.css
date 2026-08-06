@@ -85,6 +85,13 @@
     -webkit-text-size-adjust: 100%;
   }
 
+  /* Fallback for the overflow-x-clip utility on <body>. A browser without
+     `clip` drops that declaration entirely, and this one is left to catch it,
+     so a stray overflow can never turn into a sideways-scrolling page. */
+  body {
+    overflow-x: hidden;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;
@@ -273,7 +280,16 @@
   /* Gold and mint each own whole sections and never meet inside one gradient,
      because interpolating between them passes through olive. */
 
+  /* Each mesh declares a plain gradient first and the color-mix version
+     second. Where color-mix is unsupported the second declaration is invalid
+     and dropped, so the section keeps a gradient instead of losing its
+     background to a flat fill. */
   .mesh-mint {
+    background: linear-gradient(
+      180deg,
+      var(--color-base-1),
+      var(--color-base-0) 78%
+    );
     background:
       radial-gradient(
         75% 65% at 6% -5%,
@@ -294,6 +310,11 @@
   }
 
   .mesh-paid {
+    background: linear-gradient(
+      180deg,
+      var(--color-base-0),
+      var(--color-base-1) 92%
+    );
     background:
       radial-gradient(
         60% 60% at 92% 2%,
@@ -308,7 +329,32 @@
       linear-gradient(180deg, var(--color-base-0), var(--color-base-1) 92%);
   }
 
+  /* Windows High Contrast and other forced-colors modes replace the palette
+     wholesale, which turns the decorative field and the meshes into noise
+     rather than atmosphere. Nothing load-bearing is lost by removing them:
+     paid and free are spelled out in text beside every colour that carries
+     them, and the hero prints llm_calls=1 next to llm_calls=0, so the
+     argument survives without either hue. Panels keep an explicit system
+     border so their edges do not dissolve into the forced background. */
+  @media (forced-colors: active) {
+    #field,
+    .mesh {
+      display: none;
+    }
+
+    .term,
+    .chip,
+    .rule {
+      border-color: CanvasText;
+    }
+  }
+
   .mesh-deep {
+    background: linear-gradient(
+      180deg,
+      var(--color-base-0),
+      var(--color-base-1)
+    );
     background:
       radial-gradient(
         70% 55% at 50% 112%,
