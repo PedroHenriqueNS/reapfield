@@ -13,8 +13,8 @@ the LLM only when a cached selector actually stops working. Steady-state cost is
 Explicit non-goal: this tool does not defeat anti-bot systems. When a site refuses automated
 access, it says so and stops.
 
-The repo currently contains this spec and nothing else. Implementation happens in a fresh session
-against this document.
+This document describes the shipped implementation. The module layout, interfaces and pipeline
+below are the map of what exists in the repo today, not a pre-implementation plan.
 
 ## Decisions locked during the design interview
 
@@ -194,9 +194,16 @@ Runs before every derivation call. Hard output cap **30 KB**.
 
 ## Fetch layer (`fetch.py`)
 
-**Escalation.** httpx first (`follow_redirects=True`, 20 s timeout). Escalate to Playwright when
-config says `fetcher = "browser"`, or `<body>` text is under 200 chars, or steps 2–4 above extracted
-zero fields from the httpx HTML.
+**Escalation.** httpx first (`follow_redirects=False` — redirects are walked by hand, see below —
+20 s timeout). Escalate to Playwright when config says `fetcher = "browser"`, or `<body>` text is
+under 200 chars, or steps 2–4 above extracted zero fields from the httpx HTML.
+
+**Redirects.** Followed by hand, not by httpx, capped at `MAX_REDIRECTS = 5` hops. Every hop
+re-runs the full gate before the request is made: the gated-platform guard, the private-address
+check (when `block_private` is set — on by default for both CLI and MCP), robots.txt, and rate
+limiting. A redirect target was chosen by the server, not typed by whoever ran the tool, so it
+earns none of the trust the original URL had — this is what closes the SSRF hole where a public
+URL 302s to `169.254.169.254`. More than 5 hops raises `TerminalHTTPError`.
 
 **Playwright.** Chromium headless. `await page.goto(url, wait_until="domcontentloaded")`, then an
 optional config `wait_for` selector, then `page.content()`.
@@ -218,8 +225,8 @@ the default, the config `rate_limit`, and robots.txt `Crawl-delay`. Global concu
 exit 1, nothing is fetched. `crawl_delay()` feeds the limiter. There is deliberately no
 `--ignore-robots` flag.
 
-**User-Agent.** `reapfield/0.1 (+https://github.com/<owner>/reapfield)` — honest, identifiable,
-overridable in config, never randomized.
+**User-Agent.** `reapfield/0.1 (+https://github.com/PedroHenriqueNS/reapfield)` — honest,
+identifiable, overridable in config, never randomized.
 
 **Block detection.** A 403 or challenge page carrying Cloudflare / DataDome / PerimeterX markers
 raises `BlockedError`, which names the site and the detected system and exits 1. No workaround is
@@ -239,7 +246,7 @@ writes config.
 
 ```toml
 concurrency = 4
-user_agent  = "reapfield/0.1 (+https://github.com/me/reapfield)"
+user_agent  = "reapfield/0.1 (+https://github.com/PedroHenriqueNS/reapfield)"
 
 [domains."books.toscrape.com"]
 fetcher    = "http"          # auto | http | browser
@@ -249,10 +256,14 @@ pagination = "li.next > a"
 
 [domains."books.toscrape.com".selectors]
 price = ".price_color"       # pinned: never derived, never refreshed
+
+[contribute]
+reports = "ask"               # ask | never -- gates the MCP prepare_issue_report invitation
 ```
 
 Environment variables: `ANTHROPIC_API_KEY`, `REAPFIELD_LLM_MODEL` (default
-`claude-haiku-4-5-20251001`), `REAPFIELD_MCP_ALLOW_PRIVATE`.
+`claude-haiku-4-5-20251001`), `REAPFIELD_MCP_ALLOW_PRIVATE`, `REAPFIELD_ISSUE_REPORTS`
+(`ask` | `never`, overrides `[contribute] reports`).
 
 ## Adapter seam (`adapters.py`)
 
@@ -275,7 +286,7 @@ reapfield <url> --fields "title, price:float, in_stock:bool"
                 [--format json|jsonl|csv]   [--one | --many]
                 [--strict] [--refresh] [--no-llm] [--max-llm-calls N]
                 [--no-cache] [--cache-ttl SECONDS]
-                [--scroll N] [--paginate N] [-v]
+                [--scroll N] [--paginate N] [--allow-private]
 ```
 
 Exit codes: `0` ≥1 field extracted · `1` zero fields, or `--strict` with any miss, or blocked, or
@@ -297,13 +308,23 @@ mcp = MCPServer("reapfield")
 @mcp.tool()
 async def scrape(url: str, fields: str,
                  mode: Literal["auto", "one", "many"] = "auto",
-                 refresh: bool = False) -> ScrapeResult: ...
+                 refresh: bool = False, no_llm: bool = False,
+                 max_llm_calls: int = 2, no_cache: bool = False,
+                 cache_ttl: int = 3600, scroll: int = 0,
+                 paginate: int = 0) -> ScrapeResult: ...
 
 @mcp.tool()
 async def list_cached_selectors(domain: str) -> list[SelectorEntry]: ...
 
 @mcp.tool()
 async def refresh_selectors(domain: str, fields: str) -> list[SelectorEntry]: ...
+
+@mcp.tool()
+async def prepare_issue_report(summary: str, how_to_reproduce: str,
+                               cause: str, suggested_fix: str) -> IssueReport:
+    """Drafts a bug report about reapfield itself and returns a link. Never submits --
+    a human opens the link. Refuses when `[contribute] reports = "never"`."""
+    ...
 
 def main() -> None:
     mcp.run()                        # stdio is the default transport
@@ -332,12 +353,16 @@ claude mcp add reapfield --scope local -- uv run reapfield-mcp
 - **Shared fetch layer**, so per-domain rate limits, the concurrency cap, robots.txt and the LLM
   call budget all apply identically. A chatty model cannot stampede a target.
 
-**Trust boundary — this is new and the CLI does not have it.** CLI URLs come from you; MCP URLs come
-from a model, which may be acting on text it read from a web page. Therefore `mcp_server.py`
-validates before fetching, and rejects: non-`http(s)` schemes (`file://`, `gopher://`, `data:`), and
-hosts resolving to loopback, link-local, or RFC1918 private ranges — `169.254.169.254` is the one
-that matters. Resolve the host and check the resolved IP, not the string, or DNS rebinding walks
-straight past it. `REAPFIELD_MCP_ALLOW_PRIVATE=1` opts out for local development.
+**Trust boundary.** CLI URLs come from you; MCP URLs come from a model, which may be acting on text
+it read from a web page. Both reject non-`http(s)` schemes (`file://`, `gopher://`, `data:`) and
+hosts resolving to loopback, link-local, or RFC1918 private ranges **by default** — `169.254.169.254`
+is the one that matters. `mcp_server.py` always enforces this (`REAPFIELD_MCP_ALLOW_PRIVATE=1` opts
+out); `cli.py` enforces it by default too, via `cfg.block_private`, with `--allow-private` as the
+CLI opt-out. A redirect target is chosen by the server, not typed by the person running the tool, so
+it gets no more trust than a model-supplied URL would — `fetch._follow` walks redirects by hand and
+re-runs this check, plus robots.txt, rate limiting and the gated-platform guard, at every hop (max
+5). Resolve the host and check the resolved IP, not the string, or DNS rebinding walks straight past
+it.
 
 ## Dependencies — each justified
 
