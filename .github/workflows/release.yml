@@ -1,0 +1,43 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v5
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+      # Publishing lives in this same job on purpose. A GitHub Release created
+      # with GITHUB_TOKEN does NOT trigger a separate `on: release` workflow,
+      # and the usual workaround is a long-lived PAT. Keeping both steps here
+      # means no such token has to exist.
+      - uses: actions/checkout@v7
+        if: ${{ steps.release.outputs.release_created }}
+
+      - uses: actions/setup-python@v7
+        if: ${{ steps.release.outputs.release_created }}
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@v9.0.0
+        if: ${{ steps.release.outputs.release_created }}
+
+      - name: Build
+        if: ${{ steps.release.outputs.release_created }}
+        run: uv build
+
+      - name: Publish to PyPI
+        if: ${{ steps.release.outputs.release_created }}
+        uses: pypa/gh-action-pypi-publish@release/v1
