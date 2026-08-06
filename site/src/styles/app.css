@@ -46,9 +46,14 @@
   --color-paid: #e8b04b;
   --color-free: #5fe3b0;
 
+  /* Contrast is measured, not assumed. Against the lightest surface (base-2)
+     these are 15.02:1, 5.06:1 and 4.76:1, so all three clear WCAG AA body
+     text at 4.5:1. fg-faint was #4d5a55, which measured 2.47:1 and failed
+     even the 3:1 floor for large text while carrying every eyebrow, terminal
+     comment and caption on the page. */
   --color-fg: #e6ede9;
   --color-fg-dim: #7c8c85;
-  --color-fg-faint: #4d5a55;
+  --color-fg-faint: #76887f;
 
   --font-display: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono:
@@ -192,7 +197,23 @@
   }
 
   .btn {
-    @apply inline-flex items-center gap-2 rounded-chip border border-rule bg-base-2 px-5 py-3 font-mono text-micro text-fg no-underline transition-[border-color,transform] duration-200 ease-out;
+    @apply inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-chip border border-rule bg-base-2 px-5 py-3 font-mono text-micro text-fg no-underline transition-[border-color,transform] duration-200 ease-out;
+  }
+
+  /* Inline text links that are the whole target (nav, footer) need a real
+     hit area. Measured at 390px these were 45x23 and 23x23; 44px minimum is
+     the Apple HIG / Material floor. Padding grows the target without
+     changing the visual weight of the text. */
+  .link-target {
+    @apply inline-flex min-h-11 items-center px-3;
+  }
+
+  .skip-link {
+    @apply absolute left-3 top-3 z-50 -translate-y-[200%] rounded-chip border border-rule bg-base-2 px-4 py-3 font-mono text-micro text-fg no-underline transition-transform duration-200;
+  }
+
+  .skip-link:focus-visible {
+    @apply translate-y-0;
   }
 
   .btn:hover {

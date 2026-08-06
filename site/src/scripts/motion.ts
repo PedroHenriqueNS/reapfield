@@ -59,12 +59,16 @@ mm.add("(prefers-reduced-motion: no-preference)", () => {
 
   const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
 
+  /* Durations are kept near the platform guidance: micro-interactions
+     150-300ms, complex transitions at or under ~400ms. Entrance choreography
+     runs slightly longer at ~500ms, which is deliberate, but nothing here
+     sits at the 750-900ms that felt sluggish on first pass. */
   if (words.length)
-    tl.to(words, { opacity: 1, y: 0, duration: 0.75, stagger: 0.04 });
+    tl.to(words, { opacity: 1, y: 0, duration: 0.5, stagger: 0.035 });
   if (heroBits.length)
-    tl.to(heroBits, { opacity: 1, y: 0, duration: 0.6, stagger: 0.08 }, "-=0.45");
+    tl.to(heroBits, { opacity: 1, y: 0, duration: 0.42, stagger: 0.07 }, "-=0.3");
   if (runs.length)
-    tl.to(runs, { opacity: 1, y: 0, duration: 0.7, stagger: 0.12 }, "-=0.35");
+    tl.to(runs, { opacity: 1, y: 0, duration: 0.5, stagger: 0.1 }, "-=0.25");
 
   /* ---- the drain: gold is the outgoing state, mint sits underneath ------ */
 
@@ -76,14 +80,16 @@ mm.add("(prefers-reduced-motion: no-preference)", () => {
     tl.fromTo(
       gold,
       { opacity: 1, y: 0 },
-      { opacity: 0, y: "-0.4em", duration: 0.85, ease: "power2.inOut" },
+      { opacity: 0, y: "-0.4em", duration: 0.6, ease: "power2.inOut" },
+      // The hold matters more than the duration: gold has to be read as a
+      // real value before it drains, or the 1 -> 0 story does not land.
       "+=0.55",
     );
   }
   if (mint) {
     tl.from(
       mint,
-      { opacity: 0, y: "0.4em", duration: 0.7, ease: "power2.out" },
+      { opacity: 0, y: "0.4em", duration: 0.5, ease: "power2.out" },
       "<0.2",
     );
   }
@@ -123,8 +129,8 @@ mm.add("(prefers-reduced-motion: no-preference)", () => {
         gsap.to(batch, {
           opacity: 1,
           y: 0,
-          duration: 0.6,
-          stagger: 0.06,
+          duration: 0.42,
+          stagger: 0.05,
           ease: "power3.out",
           overwrite: true,
         }),
@@ -139,7 +145,7 @@ mm.add("(prefers-reduced-motion: no-preference)", () => {
       start: "top 92%",
       once: true,
       onEnter: (batch) =>
-        gsap.to(batch, { scaleX: 1, duration: 0.9, ease: "power3.out" }),
+        gsap.to(batch, { scaleX: 1, duration: 0.55, ease: "power3.out" }),
     });
   }
 
