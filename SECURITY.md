@@ -30,15 +30,24 @@ dropped and re-derived, so poisoned selectors do not persist silently.
 If you scrape pages containing sensitive content, that content is on disk until the TTL
 expires. Use `--no-cache` for anything you would not want written there.
 
-**The MCP server has a trust boundary the CLI does not.** CLI URLs come from the person at the
-keyboard. MCP URLs come from a model, which may be acting on text it read from a web page. The
-server therefore rejects non-`http(s)` schemes and any host whose **resolved** IP is loopback,
-link-local, or private — checking the resolved address rather than the hostname string, since
-a name that resolves to `127.0.0.1` defeats any string blocklist. `169.254.169.254`, the cloud
-metadata endpoint, is the case that matters most.
+**Private, loopback and link-local addresses are blocked by default — on the CLI, not only
+over MCP.** CLI URLs come from the person at the keyboard, but a URL you typed can still
+*redirect* somewhere you did not type — a redirect target is chosen by the server you asked,
+not by you. So both the CLI and the MCP server reject non-`http(s)` schemes and any host
+whose **resolved** IP is loopback, link-local, or private — checking the resolved address
+rather than the hostname string, since a name that resolves to `127.0.0.1` defeats any string
+blocklist. `169.254.169.254`, the cloud metadata endpoint, is the case that matters most.
 
-> `REAPFIELD_MCP_ALLOW_PRIVATE=1` disables that check. It exists for local development. Setting
-> it in an environment that takes URLs from a model re-opens SSRF against your own network.
+**Every hop of a redirect is re-checked, not just the URL you gave it.** Redirects are
+followed by hand rather than left to the HTTP client, capped at 5 hops. Each hop re-runs the
+private-address check (when enabled), robots.txt, the gated-platform guard, and rate limiting
+before the request is made — a single check against the original URL would let a public page
+302 straight to an internal address and walk past every one of those gates.
+
+> `--allow-private` (CLI) and `REAPFIELD_MCP_ALLOW_PRIVATE=1` (MCP) disable the private-address
+> check. Both exist for local development — scraping `localhost` or a LAN host. Setting either
+> in an environment that fetches URLs it does not fully control (redirects, or MCP URLs
+> supplied by a model) re-opens SSRF against your own network.
 
 **Credentials.** `ANTHROPIC_API_KEY` is read from the environment. It is never written to the
 cache, never logged, and never included in a prepared issue report.
