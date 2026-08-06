@@ -90,6 +90,12 @@ async def scrape(
     fields: str,
     mode: Literal["auto", "one", "many"] = "auto",
     refresh: bool = False,
+    no_llm: bool = False,
+    max_llm_calls: int = 2,
+    no_cache: bool = False,
+    cache_ttl: int = 3600,
+    scroll: int = 0,
+    paginate: int = 0,
 ) -> ScrapeResult:
     """Extract structured fields from a web page.
 
@@ -98,9 +104,26 @@ async def scrape(
 
     A field that could not be extracted comes back as null with an entry in
     `misses` explaining why -- that is a normal result, not a failure.
+
+    Cost control: `no_llm=True` uses only structured data and already-cached
+    selectors, so the call is free; `max_llm_calls` caps what an uncached page
+    may spend. `scroll` and `paginate` cost extra fetches, not extra tokens.
+
+    There is no `strict`: it exists on the CLI only to pick an exit code, and
+    `misses` already tells you what was not found.
     """
     check_url(url)
-    cfg = load(mode=mode, refresh=refresh, block_private=True)
+    cfg = load(
+        mode=mode,
+        refresh=refresh,
+        no_llm=no_llm,
+        max_llm_calls=max_llm_calls,
+        use_cache=not no_cache,
+        cache_ttl=cache_ttl,
+        scroll=scroll,
+        paginate=paginate,
+        block_private=True,
+    )
     result = await scrape_core(url, fields, cfg)
     return ScrapeResult(
         url=url,

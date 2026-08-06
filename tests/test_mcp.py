@@ -154,3 +154,38 @@ def test_instructions_respect_the_opt_out():
 def test_server_is_constructed_with_instructions():
     assert mcp_server.mcp.instructions
     assert "prepare_issue_report" in mcp_server.mcp.instructions
+
+
+# --- parity with the CLI -----------------------------------------------------
+
+
+async def test_cli_flags_reach_the_config(served, monkeypatch, tmp_path):
+    """An MCP client could not ask for a zero-cost scrape; every one may spend."""
+    monkeypatch.setattr("reapfield.cache.cache_dir", lambda: tmp_path)
+    seen = {}
+
+    async def spy(url, fields, cfg=None, **kw):
+        seen.update(vars(cfg))
+        from reapfield.extract import Extraction
+
+        return Extraction([{"title": None}], "one")
+
+    monkeypatch.setattr("reapfield.mcp_server.scrape_core", spy)
+    await mcp_server.scrape(
+        URL, "title", no_llm=True, max_llm_calls=0, no_cache=True,
+        cache_ttl=60, scroll=3, paginate=2,
+    )
+
+    assert seen["no_llm"] is True
+    assert seen["max_llm_calls"] == 0
+    assert seen["use_cache"] is False
+    assert seen["cache_ttl"] == 60
+    assert seen["scroll"] == 3
+    assert seen["paginate"] == 2
+
+
+def test_strict_is_deliberately_absent():
+    """A CLI exit-code concept. The docstring must say so, or it reads as an omission."""
+    tool = next(t for t in mcp_server.mcp._tool_manager.list_tools() if t.name == "scrape")
+    assert "strict" not in tool.parameters["properties"]
+    assert "strict" in (tool.description or "")
