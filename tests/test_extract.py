@@ -105,3 +105,45 @@ async def test_llm_budget_caps_the_calls(cfg, cache):
     await extract(fixture("detail.html"), DETAIL, fields, cfg, cache, derive)
 
     assert derive.count <= cfg.max_llm_calls == 2
+
+
+# --- partial structured data -------------------------------------------------
+#
+# JSON-LD that carries a field on some items and not others. Treating the field
+# as "done" because one item had it is how data the page contained goes missing.
+
+PARTIAL_JSONLD = """<html><body>
+<script type="application/ld+json">
+{"@type": "ItemList", "itemListElement": [
+  {"@type": "Product", "name": "One", "price": "10.00"},
+  {"@type": "Product", "name": "Two"},
+  {"@type": "Product", "name": "Three"}]}
+</script>
+<div class="row"><span class="n">One</span><span class="p">10.00</span></div>
+<div class="row"><span class="n">Two</span><span class="p">20.00</span></div>
+<div class="row"><span class="n">Three</span><span class="p">30.00</span></div>
+</body></html>"""
+
+LIST_URL = "https://shop.example/all"
+
+
+async def test_partly_filled_structured_field_still_runs_selectors(cfg, cache):
+    """price is in the JSON-LD for item 1 only; the HTML has all three."""
+    fields = parse_fields("name, price:float")
+    derive = StubDerive({"price": entry(".p", row=".row")})
+
+    result = await extract(PARTIAL_JSONLD, LIST_URL, fields, cfg, cache, derive)
+
+    assert [r["price"] for r in result.records] == [10.0, 20.0, 30.0]
+    assert result.misses == {}
+
+
+async def test_unfillable_gap_is_reported_as_partial(cache, never_derive):
+    """No way to fill the other two -> say so, rather than exit 0 on half the data."""
+    from reapfield.config import Config
+
+    cfg = Config(no_llm=True, use_cache=False)
+    result = await extract(PARTIAL_JSONLD, LIST_URL, parse_fields("name, price:float"), cfg, cache, never_derive)
+
+    assert [r["price"] for r in result.records] == [10.0, None, None]
+    assert result.misses["price"] == "found on 1 of 3 records"

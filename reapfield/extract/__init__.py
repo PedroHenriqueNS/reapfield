@@ -33,6 +33,7 @@ from .selectors import ROW_KEY
 DeriveFn = Callable[[str, list[Field], str], Awaitable[dict[str, SelectorEntry]]]
 
 NOT_FOUND = "no selector produced a value"
+PARTIAL = "found on {} of {} records"
 BAD_TYPE = "value did not match its declared type"
 NO_LLM = "not on the page and derivation is disabled"
 NO_BUDGET = "not on the page and the LLM call budget is spent"
@@ -285,7 +286,16 @@ async def extract(
             f"{url} is a listing of multiple records; --one would silently keep only the first"
         )
 
-    filled = {f.name for f in fields if any(r.get(f.name) is not None for r in struct_recs)}
+    # "Filled" means filled on *every* record. One item of a listing carrying
+    # `price` in its JSON-LD said nothing about the other nineteen, and treating
+    # the field as done meant the selector path never ran and the gaps were
+    # never even reported. A field with holes goes back in the queue; _merge
+    # fills them in per record.
+    filled = {
+        f.name
+        for f in fields
+        if struct_recs and all(r.get(f.name) is not None for r in struct_recs)
+    }
     remaining = [f for f in fields if f.name not in filled]
 
     if not remaining:
@@ -310,8 +320,13 @@ async def extract(
     if not records:
         records = [{f.name: None for f in fields}]
     for f in fields:
-        if all(r.get(f.name) is None for r in records):
+        have = sum(r.get(f.name) is not None for r in records)
+        if have == 0:
             misses.setdefault(f.name, NOT_FOUND)
+        elif have < len(records):
+            # Data the page had and we did not get. Silence here is what let
+            # --strict exit 0 on an incomplete result.
+            misses[f.name] = PARTIAL.format(have, len(records))
         else:
             misses.pop(f.name, None)
 
