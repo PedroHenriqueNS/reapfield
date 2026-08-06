@@ -2,7 +2,14 @@
 
 SelectorCache has NO TTL: a selector that still works is still correct, and
 expiring it just buys LLM calls. It is invalidated by *failure* only -- see
-extract/__init__.py, which drops entries whose value fails type coercion.
+extract/__init__.py, which drops an entry that matched nothing, or whose value
+failed the declared type.
+
+Note the limit that follows from that, because it is not obvious: an untyped
+(`str`) field whose selector starts matching the wrong element is not a
+detectable failure -- any non-empty text is a valid `str`, and it will stay
+cached until `--refresh`. Declaring a type is what makes a wrong-node selector
+self-correcting. extract/__init__.py's module docstring has the full rule.
 
 ResponseCache DOES have a TTL, because page content genuinely changes.
 """

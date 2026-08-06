@@ -147,3 +147,35 @@ async def test_unfillable_gap_is_reported_as_partial(cache, never_derive):
 
     assert [r["price"] for r in result.records] == [10.0, None, None]
     assert result.misses["price"] == "found on 1 of 3 records"
+
+
+# --- the limit of the coercion guard -----------------------------------------
+
+
+async def test_wrong_str_selector_is_not_detectable(cfg, cache, never_derive):
+    """Honest documentation of a real limit -- do NOT "fix" this with a heuristic.
+
+    `.price_color` is plainly not a title, but any non-empty text is a valid
+    `str`. Telling otherwise would mean knowing what "title" means, and field
+    names are arbitrary (spec.py, "Invariant"). So this stays cached.
+    """
+    fields = parse_fields("title")
+    cache.put(DOMAIN, fields[0], "one", entry(".price_color"))
+
+    result = await extract(fixture("detail.html"), DETAIL, fields, cfg, cache, never_derive)
+
+    assert never_derive.count == 0
+    assert result.records[0]["title"] == "£51.77"
+    assert cache.get(DOMAIN, fields[0], "one").selector == ".price_color"
+
+
+async def test_declaring_a_type_is_what_buys_detection(cfg, cache):
+    """The same wrong node, on a typed field, does re-derive. That is the trade."""
+    fields = parse_fields("price:float")
+    cache.put(DOMAIN, fields[0], "one", entry("h1"))
+    derive = StubDerive({"price": entry(".price_color")})
+
+    result = await extract(fixture("detail.html"), DETAIL, fields, cfg, cache, derive)
+
+    assert derive.count == 1
+    assert result.records[0]["price"] == 51.77

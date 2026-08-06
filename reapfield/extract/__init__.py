@@ -4,9 +4,19 @@ Order is deliberate -- every step only handles fields the previous ones missed:
 structured data (free) -> config pins (authoritative) -> cached selectors (free)
 -> derivation (costs money) -> coercion guard.
 
-The coercion guard is the *entire* invalidation mechanism. There is no TTL on a
-selector; a selector is wrong only when it stops producing a value of the
-declared type, and that is exactly what `_coerce` detects.
+There is no TTL on a selector, so invalidation is entirely failure-driven, and
+it is worth being exact about what "failure" can and cannot see:
+
+- A selector that matches nothing always invalidates. This is type-independent.
+- A selector that matches the *wrong* node invalidates only for a field with a
+  declared non-`str` type, where `_coerce` can tell that "A Light in the Attic"
+  is not a float.
+- An untyped (`str`) field whose selector quietly starts matching a different
+  element is NOT detectable. Any non-empty text is a valid `str`, and deciding
+  that a given string is the wrong *kind* of string would require knowing what
+  the field means -- which this package deliberately never does (see spec.py,
+  "Invariant"). Declaring a type is what buys that protection; `--refresh` is
+  the escape hatch when a `str` field goes wrong.
 
 `derive` is injected rather than imported, which is what lets the whole suite run
 offline with a stub and no API key.
