@@ -233,6 +233,47 @@ async def test_ordinary_redirect_still_works(no_sleep):
     assert "arrived" in resp.html
 
 
+PAGED = """<html><body>
+<script type="application/ld+json">
+{"@type": "ItemList", "itemListElement": [
+  {"@type": "Product", "name": "One"}, {"@type": "Product", "name": "Two"}]}
+</script>
+<a class="next" href="https://instagram.com/explore">next</a>
+</body></html>"""
+
+
+async def test_pagination_hops_are_gated_too(no_sleep, tmp_path):
+    """--paginate follows an href the *page* chose. Same untrusted URL, same gates.
+
+    Confirms pagination inherits enforcement by going through fetch(), rather
+    than needing its own copy of the checks.
+    """
+    from conftest import StubDerive
+
+    from reapfield import scrape
+    from reapfield.cache import SelectorCache
+    from reapfield.config import DomainConfig
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/robots.txt":
+            return httpx.Response(404)
+        return httpx.Response(200, text=PAGED)
+
+    _transport(handler)
+    cfg = Config(
+        use_cache=False,
+        paginate=2,
+        mode="many",
+        domains={"shop.example": DomainConfig(pagination="a.next")},
+    )
+
+    with pytest.raises(GatedPlatform):
+        await scrape(
+            "https://shop.example/all", "name", cfg,
+            cache=SelectorCache(root=tmp_path), derive=StubDerive(),
+        )
+
+
 def test_sixtofour_is_blocked():
     """2002::/16 tunnels an arbitrary IPv4 destination straight through."""
     import ipaddress
