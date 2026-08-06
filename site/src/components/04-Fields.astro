@@ -1,0 +1,52 @@
+---
+const SPECS = [
+  {
+    caption: "the obvious one",
+    flag: '--fields "title, price:float, in_stock:bool"',
+  },
+  {
+    caption: "and this one",
+    flag: '--fields "reactor_id, coolant_temp_c:float"',
+  },
+];
+---
+
+<section class="section" id="fields">
+  <div class="shell">
+    <h2 class="h-section" data-reveal>There is no list of supported fields.</h2>
+
+    <p class="copy mt-6" data-reveal>
+      Field names are arbitrary. Both of these take <strong
+        >exactly the same code path</strong
+      >. No lookup table, no per-field heuristic, no vocabulary the tool has to
+      be taught.
+    </p>
+
+    <div class="mt-10 grid gap-6 md:grid-cols-2">
+      {
+        SPECS.map((s) => (
+          <figure
+            class="m-0 min-w-0 rounded-card border border-rule bg-base-2 px-4.5 py-4"
+            data-reveal
+          >
+            <figcaption class="mb-2.5 font-mono text-micro text-fg-faint">
+              {s.caption}
+            </figcaption>
+            <code class="block min-w-0 overflow-x-auto whitespace-nowrap font-mono text-code text-fg">
+              {s.flag}
+            </code>
+          </figure>
+        ))
+      }
+    </div>
+
+    <div class="mt-10 border-s-2 border-rule ps-6" data-reveal>
+      <p class="copy">
+        The inline type is not decoration. It is half of how a stale selector
+        gets caught: <code class="code-inline">price:float</code> returning <code
+          class="code-inline">"Add to basket"</code
+        > is detectable, where a bare string is not.
+      </p>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,47 @@
+---
+const SIGNALS = [
+  {
+    signal: "matched nothing",
+    means: "The node is gone, or it was renamed.",
+  },
+  {
+    signal: "value failed its declared type",
+    means:
+      "The selector still matches something. It is now grabbing the wrong node.",
+  },
+];
+---
+
+<section class="section overflow-hidden" id="invalidation">
+  <div class="mesh mesh-paid"></div>
+
+  <div class="shell relative z-10">
+    <h2 class="h-section" data-reveal>There is no TTL on a selector.</h2>
+
+    <p class="lede mt-6" data-reveal>
+      A selector that still works is still correct. Expiring it on a timer only
+      buys LLM calls.
+    </p>
+
+    <div class="mt-10 grid gap-6 md:grid-cols-2">
+      {
+        SIGNALS.map((s) => (
+          <div
+            class="min-w-0 rounded-card border border-rule bg-base-2 px-5 py-5"
+            data-reveal
+          >
+            <p class="mb-2 font-mono text-micro text-paid">{s.signal}</p>
+            <p class="text-copy text-fg-dim">{s.means}</p>
+          </div>
+        ))
+      }
+    </div>
+
+    <p class="copy mt-10" data-reveal>
+      Those are the only two signals that drop a cached selector, and they are
+      the same event seen from two angles: the page moved. When one fires, that
+      one field is re-derived. Nothing else on the page is touched, and the
+      cache repairs itself without anyone noticing first.
+    </p>
+  </div>
+</section>

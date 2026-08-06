@@ -1,0 +1,119 @@
+---
+import Mark from "./Mark.astro";
+import Terminal from "./Terminal.astro";
+
+const CMD_URL =
+  "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html";
+const HEADLINE = [
+  "Pay",
+  "for",
+  "the",
+  "selector",
+  "once.",
+  "Replay",
+  "it",
+  "forever.",
+];
+---
+
+<header class="relative z-30 border-b border-rule-soft">
+  <!-- min-h rather than a fixed h, and allowed to wrap: at 200% text on a
+       320px viewport the brand and the link no longer fit one line, and a
+       fixed height clipped the link instead of letting the header grow. -->
+  <nav
+    aria-label="Primary"
+    class="shell flex min-h-[66px] flex-wrap items-center justify-between gap-x-4"
+  >
+    <a
+      class="-ms-3 inline-flex min-h-11 items-center gap-2.5 px-3 font-semibold tracking-[-0.02em] text-fg no-underline"
+      href="/"
+    >
+      <Mark size={22} />
+      <span>reapfield</span>
+    </a>
+    <a
+      class="link link-target -me-3 font-mono text-micro"
+      href="https://github.com/PedroHenriqueNS/reapfield"
+      rel="noopener">GitHub</a
+    >
+  </nav>
+</header>
+
+<section
+  class="section overflow-hidden pt-[clamp(2.5rem,1.5rem+3vw,5rem)]"
+  id="hero"
+>
+  <div class="mesh mesh-mint"></div>
+  <!-- inset-0 on a clipped parent, never 100vw: vw units include the
+       scrollbar and would guarantee horizontal overflow at 1440px. -->
+  <canvas id="field" class="absolute inset-0 z-0 h-full w-full" aria-hidden="true"
+  ></canvas>
+
+  <div class="shell relative z-10">
+    <h1 class="h-display max-w-[17ch]">
+      {
+        /* The space MUST be a text node between the spans, not inside them:
+           an inline-block trims its own trailing whitespace, which runs the
+           words together both visually and in the accessibility tree. */
+        HEADLINE.map((w, i) => (
+          <Fragment>
+            {i > 0 ? " " : ""}
+            <span class="hero__w inline-block">{w}</span>
+          </Fragment>
+        ))
+      }
+    </h1>
+
+    <p class="lede hero__lede mt-6">
+      A URL and a plain-language field spec in, structured JSON out. Including
+      pages that only render under JavaScript.
+    </p>
+
+    <div class="hero__cta mt-10">
+      <a class="btn btn-primary" href="#install">Install</a>
+    </div>
+
+    <div class="mt-16 grid gap-6 lg:grid-cols-2">
+      <Terminal label="first run on this domain" class="hero__run">
+        <span class="c">$</span> uv run reapfield {CMD_URL} \
+        <br />&#32;&#32;&#32;&#32;--fields <span class="s"
+          >"title, price:float, in_stock:bool"</span
+        >
+        <br />reapfield: <span class="k">mode=one records=1</span> <span
+          class="text-paid">llm_calls=1</span
+        >
+        <br />&#123;
+        <br />&#32;&#32;"title": <span class="s">"A Light in the Attic"</span>,
+        <br />&#32;&#32;"price": 51.77,
+        <br />&#32;&#32;"in_stock": true
+        <br />&#125;
+      </Terminal>
+
+      <Terminal label="identical command, second run" class="hero__run">
+        <span class="c">$</span> uv run reapfield {CMD_URL} \
+        <br />&#32;&#32;&#32;&#32;--fields <span class="s"
+          >"title, price:float, in_stock:bool"</span
+        >
+        <br />reapfield: <span class="k">mode=one records=1</span> <span
+          class="tok"
+          id="drain"
+          ><span class="tok-free">llm_calls=0</span><span
+            class="tok-gold"
+            aria-hidden="true">llm_calls=1</span
+          ></span
+        >
+        <br />&#123;
+        <br />&#32;&#32;"title": <span class="s">"A Light in the Attic"</span>,
+        <br />&#32;&#32;"price": 51.77,
+        <br />&#32;&#32;"in_stock": true
+        <br />&#125;
+      </Terminal>
+    </div>
+
+    <p class="copy mt-6 max-w-[70ch] text-micro">
+      That first run cost one LLM call. This page has no JSON-LD or other
+      structured data, so reapfield had to derive the selectors. The second run
+      is free, and every run after it.
+    </p>
+  </div>
+</section>

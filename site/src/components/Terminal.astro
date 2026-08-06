@@ -1,0 +1,29 @@
+---
+/**
+ * Terminal chrome. The content is real output copied from README.md, not a
+ * mocked-up product UI. For a CLI, the terminal is the product surface.
+ */
+interface Props {
+  label: string;
+  class?: string;
+}
+const { label, class: cls = "" } = Astro.props;
+---
+
+<div class:list={["term", cls]}>
+  <div class="term__bar">
+    <span>{label}</span>
+  </div>
+  {
+    /* The body scrolls horizontally when a command is longer than the box.
+       A scrollable region must be reachable by keyboard (WCAG 2.1.1), which
+       means tabindex="0" plus a name so it is announced rather than being a
+       mystery tab stop. */
+  }
+  <pre
+    class="term__body"
+    tabindex="0"
+    role="region"
+    aria-label={`Terminal output: ${label}`}
+  ><code><slot /></code></pre>
+</div>

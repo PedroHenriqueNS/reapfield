@@ -1,0 +1,33 @@
+---
+---
+
+<section class="section" id="idea">
+  <div class="shell">
+    <h2 class="h-display max-w-[20ch]" data-reveal>
+      Every one-off scraper gets written twice.
+    </h2>
+
+    <hr class="rule my-10" data-rule />
+
+    <div class="grid gap-6 md:grid-cols-2 md:gap-10">
+      <p class="copy" data-reveal>
+        Once to find the selectors by hand, and again when the site changes. The
+        second write is the expensive one: it happens under time pressure, in
+        code someone else wrote, after the data has already gone quietly wrong.
+      </p>
+      <p class="copy" data-reveal>
+        reapfield pays a language model <strong>once per field per domain</strong
+        > to discover the CSS selectors, caches them, and replays them
+        deterministically forever after. It goes back to the model only when a
+        cached selector actually stops working.
+      </p>
+    </div>
+
+    <p
+      class="mt-10 text-sub font-semibold leading-[1.25] tracking-[-0.02em]"
+      data-reveal
+    >
+      Steady-state cost is <span class="text-free">zero LLM calls</span>.
+    </p>
+  </div>
+</section>
