@@ -10,8 +10,15 @@ const UNRELEASED = [
 
 <section class="section" id="install">
   <div class="shell">
-    <p class="eyebrow" data-reveal>Install</p>
-    <h2 class="h-section mt-2" data-reveal>One of these works today.</h2>
+    {
+      /* No eyebrow here deliberately. Sections 3, 6 and 7 all carried one,
+         and 6 and 7 are adjacent, which breaks the rule that an eyebrow
+         forbids another in the next two sections. This one was the most
+         redundant of the three: the install commands sit directly beneath the
+         headline, and the hero CTA that scrolls here is already labelled
+         "Install". */
+    }
+    <h2 class="h-section" data-reveal>One of these works today.</h2>
 
     <!-- min-w-0 on the columns is load-bearing: grid items default to
          `min-width: auto`, so the nowrap install commands would otherwise
