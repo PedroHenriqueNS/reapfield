@@ -68,6 +68,12 @@ def environment() -> dict[str, str]:
     }
 
 
+def render_environment() -> str:
+    """The environment table, ready to drop into the form's `environment` field."""
+    rows = "\n".join(f"| {k} | {v} |" for k, v in environment().items())
+    return f"| Component | Version |\n| --- | --- |\n{rows}"
+
+
 def render_body(
     summary: str, how_to_reproduce: str, cause: str, suggested_fix: str, *, search_failed: bool
 ) -> str:
@@ -155,8 +161,23 @@ async def prepare(
     body = render_body(
         summary, how_to_reproduce, cause, suggested_fix, search_failed=search_failed
     )
+    # ai_agent_report.yml is a GitHub *issue form*, and an issue form is
+    # prefilled by field `id`, not by `body`. Sending `body` prefilled nothing
+    # at all -- the human landed on five empty required textareas and retyped
+    # the report, environment table included. These keys must stay in step with
+    # .github/ISSUE_TEMPLATE/ai_agent_report.yml; a test asserts that they do.
     params = urllib.parse.urlencode(
-        {"title": title, "body": body, "labels": "ai-reported", "template": "ai_agent_report.yml"}
+        {
+            "template": "ai_agent_report.yml",
+            "labels": "ai-reported",
+            "title": title,
+            # No form field fits the warning, and it must still reach the human.
+            "summary": f"{SEARCH_UNAVAILABLE}\n\n{summary}" if search_failed else summary,
+            "reproduce": how_to_reproduce,
+            "cause": cause,
+            "fix": suggested_fix,
+            "environment": render_environment(),
+        }
     )
     return IssueReport(
         search_failed=search_failed,
