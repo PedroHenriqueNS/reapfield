@@ -13,6 +13,7 @@ adapters cost maintenance we have not committed to.
 
 ```python
 from reapfield import adapters
+from reapfield.spec import Field
 
 async def fetch_widgets(url: str, fields: list[Field]) -> list[dict]:
     ...  # call the official API, return one dict per record
