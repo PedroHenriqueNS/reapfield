@@ -46,7 +46,7 @@ reapfield-mcp = "reapfield.mcp_server:main"
 dev = [
     "pytest>=8.3",
     "pytest-asyncio>=0.24",
-    "ruff>=0.8",
+    "ruff>=0.16.2",
     "pyright>=1.1.380",
 ]
 
