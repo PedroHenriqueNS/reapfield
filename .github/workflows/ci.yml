@@ -30,7 +30,7 @@ jobs:
 
       # astral-sh publishes no floating `v9` tag (only exact patch tags), so this
       # is pinned exact — don't "helpfully" shorten it back to @v9.
-      - uses: astral-sh/setup-uv@v9.0.0
+      - uses: astral-sh/setup-uv@v10.0.1
         with:
           enable-cache: true
 
@@ -54,7 +54,7 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
-      - uses: astral-sh/setup-uv@v9.0.0
+      - uses: astral-sh/setup-uv@v10.0.1
       - run: uv sync
       - name: Ruff
         run: uv run ruff check .
